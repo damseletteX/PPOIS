@@ -1,8 +1,6 @@
 #include <iostream>
 #include "set.h"
 
-//Описать класс «Множество». Класс должен реализовывать следующие возможности:
-
 //     элементом множества может быть другое множество;
 //     проверка на пустое множество;
 //     добавление элемента;
@@ -13,23 +11,46 @@
 //     пересечение двух множеств (*, *=);
 //     разность двух множеств (-, -=);
 //     построение булеана (множества всех подмножеств) данного множества.
+// Описать класс «Неориентированное канторовское множество»
+//  (элементы не повторяются и не упорядочены).
+//  Класс должен дополнительно
+// реализовывать формирование множества из строки
+// (например, {a, b, c, {a, b}, {}, {a, {c}}}).
 
-// Описать класс «Неориентированное канторовское множество» (элементы не повторяются и не упорядочены). Класс должен дополнительно реализовывать формирование множества из строки (например, {a, b, c, {a, b}, {}, {a, {c}}}).
-
-bool CSet::Is_empty()const{
-    return ;
+// ELEMENT METHODS
+bool Element::elcmp(const Element &other) const
+{
+    if (other.isSet != this->isSet)
+        return false;
+    else if (other.isSet == this->isSet == false)
+    {
+        return other.atom == this->atom;
+    }
+    else
+    { 
+        
+    }
 }
-bool CSet::Does_belong()const{};
-void CSet::Clear(){}
-int CSet::Det_cardinality()const{}
-void CSet::Rmv_el(){}
 
-CSet CSet::Unite(CSet& b)const{}
-CSet CSet::Intersect(CSet& b)const{}
-CSet CSet::Substract(CSet& b)const{}
-CSet CSet::Construct_PwrSet()const{}
+// SET METHODS
+void Set::add(Element New)
+{
+    if (elcmp(New))
+    {
+        std::cout << "Element already in the set." << std::endl;
+        return;
+    }
+    this->els.push_back(New);
+}
 
-int main(){
+int const Set::getCardinality()
+{
+    return size(this->els);
+}
+
+
+int main()
+{
 
     return 0;
 }
