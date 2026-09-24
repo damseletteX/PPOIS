@@ -1,56 +1,167 @@
 #include <iostream>
-#include "set.h"
-
-//     элементом множества может быть другое множество;
-//     проверка на пустое множество;
-//     добавление элемента;
-//     удаление элемента;
-//     определение мощности множества;
-//     проверка принадлежности элемента множеству ([]);
-//     объединение двух множеств (+, +=);
-//     пересечение двух множеств (*, *=);
-//     разность двух множеств (-, -=);
-//     построение булеана (множества всех подмножеств) данного множества.
-// Описать класс «Неориентированное канторовское множество»
-//  (элементы не повторяются и не упорядочены).
-//  Класс должен дополнительно
-// реализовывать формирование множества из строки
-// (например, {a, b, c, {a, b}, {}, {a, {c}}}).
+#include "../include/set.h"
+#include <algorithm>
 
 // ELEMENT METHODS
-bool Element::elcmp(const Element &other) const
+bool Element::operator==(const Element &other) const
 {
     if (other.isSet != this->isSet)
         return false;
-    else if (other.isSet == this->isSet == false)
+    else if (other.isSet == false)
     {
         return other.atom == this->atom;
     }
-    else
-    { 
-        
+    else if (other.subset->getCardinality() == subset->getCardinality())
+    {
+        return *this->subset == *other.subset;
     }
+    return false;
 }
 
 // SET METHODS
-void Set::add(Element New)
+Set::Set()
 {
-    if (elcmp(New))
+    els.clear();
+}
+
+Set::Set(const std::string &set_)
+{
+    parse(set_);
+}
+
+Set Set::parse(const std::string &s)
+{
+    if(s[0]=='{' && s[s.length()-1=='}']) s.substr(1, s.size() - 2);
+    else std::cout << "Set must start with a '{' and end with a '}'.\n";
+    
+    int depth = 0;
+    for (int i = 0; i < s.length(); i++)
     {
-        std::cout << "Element already in the set." << std::endl;
-        return;
+        switch(s[i])
+        {
+        case '{':
+            depth++;
+            break;
+        case '}':
+            depth--;
+            break;
+        case ',' || ' ':
+            break;
+        default:
+            
+            break;
+        }
+    }
+}
+
+bool Set::isEmpty() const
+{
+    return els.empty();
+}
+
+size_t Set::getCardinality() const
+{
+    return els.size();
+}
+
+bool Set::operator==(const Set &other) const
+{
+    if (this->els.size() != other.els.size())
+        return false;
+    size_t flag = 0;
+    for (const Element &myEl : this->els)
+    {
+        for (const Element &otherEl : other.els)
+        {
+            if (myEl == otherEl)
+                flag++;
+        }
+    }
+    return flag == getCardinality();
+}
+
+bool Set::operator[](const Element &el_) const
+{
+    for (const Element &elem : els)
+    {
+        if (el_ == elem)
+            return true;
+    }
+    return false;
+}
+
+void Set::add(const Element &New)
+{
+    for (const Element &el : this->els)
+    {
+        if (el == New)
+        {
+            std::cout << "Element already in the set." << std::endl;
+            return;
+        }
     }
     this->els.push_back(New);
 }
 
-int const Set::getCardinality()
+void Set::rmv(const Element &byebye)
 {
-    return size(this->els);
+    std::vector<Element>::iterator position = find(els.begin(), els.end(), byebye);
+    if (position == els.end())
+    {
+        std::cout << "! Element not in set !\n";
+        return;
+    }
+    else
+    {
+        els.erase(position);
+    }
 }
 
-
-int main()
+void Set::clear()
 {
+    els.clear();
+    std::cout << "Set cleared of elements.\n";
+}
 
-    return 0;
+Set Set::operator*(const Set &other) const
+{
+    Set intersection;
+    for (const Element &myEl : els)
+    {
+        for (const Element &otherEl : other.els)
+        {
+            if (myEl == otherEl)
+            {
+                intersection.add(myEl);
+            }
+        }
+    }
+    return intersection;
+}
+
+Set Set::operator-(const Set &other) const
+{
+    Set difference = *this;
+    for (const Element &otherEl : other.els)
+    {
+        difference.rmv(otherEl);
+    }
+    return difference;
+}
+
+Set Set::operator+(const Set &other) const
+{
+    Set united = *this;
+    for (const Element &el : other.els)
+    {
+        united.add(el);
+    }
+    return united;
+}
+
+Set Set::buildBoolean() const
+{
+    Set boolean;
+
+    return boolean;
 }

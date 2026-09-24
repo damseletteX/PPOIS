@@ -4,25 +4,6 @@
 #include <memory>
 
 class Set;
-// unordered Cantor set
-//     {std::vector<std::string> elem;
-
-//     void Add_el();
-//     bool Does_belong() const;
-//     void Parse(const std::string) const;
-
-//     public:
-//         bool Is_empty() const;
-//         int Det_cardinality() const;
-//         void Rmv_el();
-//         void Clear();
-//         Set() = default;
-//         ~Set() = default;
-//         Set Unite(Set&) const;
-//         Set Intersect(Set&) const;
-//         Set Substract(Set&) const;
-//         Set Construct_PwrSet() const;
-// };
 class Element
 {
     bool isSet;
@@ -30,23 +11,40 @@ class Element
     std::string atom;
 
 public:
-    explicit Element(const Set &subset_) : isSet(true),
+    Element(const Set &subset_) : isSet(true),
                                            subset(std::make_shared<Set>(subset_)),
                                            atom("") {}
-    explicit Element(const std::string &atom_) : isSet(false), subset(nullptr), atom(atom_) {}
-    ~Element();
-    bool elcmp(const Element &other) const;
+    Element(const std::string &atom_) : isSet(false), subset(nullptr), atom(atom_) {}
+    ~Element() {};
+    bool operator==(const Element &other) const;
 };
 
 class Set
 {
     std::vector<Element> els;
+    Set parse(const std::string &);
+    static std::string trim(const std::string &);
+    std::vector<std::string> splitTop(const std::string &) const;
 
 public:
-    explicit Set();
-    ~Set();
-    void add(Element);
-    void rmv(Element);
-    int const getCardinality();
-    void Clear();
+    Set() {};
+    Set(const std::string &set_) {}
+    ~Set() {};
+    bool isEmpty() const;
+    size_t getCardinality() const;
+    bool operator==(const Set &) const;
+    void add(const Element &);
+    void rmv(const Element &);
+    void clear();
+
+    // union
+    Set operator+(const Set &) const;
+    // difference
+    Set operator-(const Set &) const;
+    // intersection
+    Set operator*(const Set &) const;
+    // is element in set?
+    bool operator[](const Element &) const;
+    // boolean
+    Set buildBoolean() const;
 };
