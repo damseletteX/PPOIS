@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/set.h"
 #include <algorithm>
+#include <stack>
 
 // ELEMENT METHODS
 bool Element::operator==(const Element &other) const
@@ -19,38 +20,71 @@ bool Element::operator==(const Element &other) const
 }
 
 // SET METHODS
-Set::Set()
-{
-    els.clear();
-}
+Set::Set(){}
 
 Set::Set(const std::string &set_)
 {
     parse(set_);
 }
 
-Set Set::parse(const std::string &s)
+void Set::parse(const std::string &s)
 {
-    if(s[0]=='{' && s[s.length()-1=='}']) s.substr(1, s.size() - 2);
-    else std::cout << "Set must start with a '{' and end with a '}'.\n";
-    
-    int depth = 0;
-    for (int i = 0; i < s.length(); i++)
+        std::stack<Set> levels;
+    std::string currentToken;
+ 
+    for (char c : s)
     {
-        switch(s[i])
+        if (std::isspace(static_cast<unsigned char>(c)))
         {
-        case '{':
-            depth++;
-            break;
-        case '}':
-            depth--;
-            break;
-        case ',' || ' ':
-            break;
-        default:
-            
-            break;
+            continue;
         }
+        else if (c == '{')
+        {
+            levels.push(Set());
+        }
+        else if (c == ',')
+        {
+            if (!currentToken.empty())
+            {
+                levels.top().add(Element(currentToken));
+                currentToken.clear();
+            }
+        }
+        else if (c == '}')
+        {
+            if (!currentToken.empty())
+            {
+                levels.top().add(Element(currentToken));
+                currentToken.clear();
+            }
+ 
+            if (levels.empty())
+            {
+                std::cout << "! Несбалансированные скобки в строке множества !\n";
+                return;
+            }
+ 
+            Set finished = levels.top();
+            levels.pop();               
+ 
+            if (levels.empty())
+            {
+                *this = finished;
+            }
+            else
+            {
+                levels.top().add(Element(finished));
+            }
+        }
+        else
+        {
+            currentToken += c; 
+        }
+    }
+ 
+    if (!levels.empty())
+    {
+        std::cout << "! Несбалансированные скобки в строке множества !\n";
     }
 }
 

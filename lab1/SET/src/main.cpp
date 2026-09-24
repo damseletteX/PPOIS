@@ -3,8 +3,6 @@
 
 int main()
 {
-    std::cout << "=== Демонстрация класса Set ===\n\n";
-
     Set s1("{a, b, c}");
     std::cout << "s1 = {a, b, c}\n";
     std::cout << "  мощность = " << s1.getCardinality() << "\n";

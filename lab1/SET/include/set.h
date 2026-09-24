@@ -22,12 +22,9 @@ public:
 class Set
 {
     std::vector<Element> els;
-    Set parse(const std::string &);
-    static std::string trim(const std::string &);
-    std::vector<std::string> splitTop(const std::string &) const;
-
+    void parse(const std::string &);
 public:
-    Set() {};
+    Set() {} = default;
     Set(const std::string &set_) {}
     ~Set() {};
     bool isEmpty() const;
