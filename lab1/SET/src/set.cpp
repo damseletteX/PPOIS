@@ -1,7 +1,8 @@
-#include <iostream>
 #include "../include/set.h"
 #include <algorithm>
 #include <stack>
+#include <stdexcept>
+#include <utility>
 
 // ELEMENT METHODS
 bool Element::operator==(const Element &other) const
@@ -19,73 +20,89 @@ bool Element::operator==(const Element &other) const
     return false;
 }
 
-// SET METHODS
-Set::Set(){}
+std::string Element::toString() const
+{
+    return isSet ? subset->toString() : atom;
+}
 
+// SET METHODS
 Set::Set(const std::string &set_)
 {
     parse(set_);
 }
 
+// Разбор строки через стек: levels.top() — множество, которое строится на
+// текущем уровне вложенности. '{' открывает новый уровень, '}' закрывает:
+// последний уровень становится результатом, остальные — элементами родителя.
+// Результат присваивается только в конце, поэтому при ошибке объект не создаётся.
 void Set::parse(const std::string &s)
 {
-        std::stack<Set> levels;
-    std::string currentToken;
- 
+    const char *bad = "Invalid set string: check the brackets and stray characters.";
+    std::stack<Set> lvls;
+    std::string curElement;
+    Set ready;
+    Set result;
     for (char c : s)
     {
-        if (std::isspace(static_cast<unsigned char>(c)))
+        switch (c)
         {
-            continue;
-        }
-        else if (c == '{')
-        {
-            levels.push(Set());
-        }
-        else if (c == ',')
-        {
-            if (!currentToken.empty())
+        case ' ':
+        case '\t':
+        case '\n':
+        case '\r':
+            break;
+        case '{':
+            lvls.push(Set());
+            break;
+        case '}':
+            if (lvls.empty())
+                throw std::invalid_argument(bad);
+            if (!curElement.empty())
+                lvls.top().insertUnique(Element(curElement));
+            curElement.clear();
+            ready = lvls.top();
+            lvls.pop();
+            if (lvls.empty())
             {
-                levels.top().add(Element(currentToken));
-                currentToken.clear();
-            }
-        }
-        else if (c == '}')
-        {
-            if (!currentToken.empty())
-            {
-                levels.top().add(Element(currentToken));
-                currentToken.clear();
-            }
- 
-            if (levels.empty())
-            {
-                std::cout << "! Несбалансированные скобки в строке множества !\n";
-                return;
-            }
- 
-            Set finished = levels.top();
-            levels.pop();               
- 
-            if (levels.empty())
-            {
-                *this = finished;
+                result = ready;
             }
             else
             {
-                levels.top().add(Element(finished));
+                lvls.top().insertUnique(Element(ready));
             }
-        }
-        else
-        {
-            currentToken += c; 
+            break;
+        case ',':
+            if (lvls.empty())
+                throw std::invalid_argument(bad);
+            if (!curElement.empty())
+            {
+                lvls.top().insertUnique(Element(curElement));
+                curElement.clear();
+            }
+            break;
+        default:
+            if (lvls.empty())
+                throw std::invalid_argument(bad);
+            curElement += c;
+            break;
         }
     }
- 
-    if (!levels.empty())
+
+    if (!lvls.empty())
+        throw std::invalid_argument(bad);
+    *this = result;
+}
+
+std::string Set::toString() const
+{
+    std::string out = "{";
+    for (size_t i = 0; i < els.size(); ++i)
     {
-        std::cout << "! Несбалансированные скобки в строке множества !\n";
+        if (i > 0)
+            out += ", ";
+        out += els[i].toString();
     }
+    return out + "}";
 }
 
 bool Set::isEmpty() const
@@ -124,78 +141,110 @@ bool Set::operator[](const Element &el_) const
     return false;
 }
 
+bool Set::insertUnique(const Element &New)
+{
+    if ((*this)[New])
+        return false;
+    els.push_back(New);
+    return true;
+}
+
 void Set::add(const Element &New)
 {
-    for (const Element &el : this->els)
-    {
-        if (el == New)
-        {
-            std::cout << "Element already in the set." << std::endl;
-            return;
-        }
-    }
-    this->els.push_back(New);
+    if (!insertUnique(New))
+        throw std::logic_error("Element already in set.");
 }
 
 void Set::rmv(const Element &byebye)
 {
-    std::vector<Element>::iterator position = find(els.begin(), els.end(), byebye);
+    std::vector<Element>::iterator position = std::find(els.begin(), els.end(), byebye);
     if (position == els.end())
-    {
-        std::cout << "! Element not in set !\n";
-        return;
-    }
-    else
-    {
-        els.erase(position);
-    }
+        throw std::logic_error("Such element not found.");
+    els.erase(position);
 }
 
 void Set::clear()
 {
     els.clear();
-    std::cout << "Set cleared of elements.\n";
 }
 
-Set Set::operator*(const Set &other) const
+// Объединение. Повторы — обычная ситуация, поэтому insertUnique, а не add.
+// При other == *this ничего не добавляется, обход безопасен.
+Set &Set::operator+=(const Set &other)
 {
-    Set intersection;
-    for (const Element &myEl : els)
-    {
-        for (const Element &otherEl : other.els)
-        {
-            if (myEl == otherEl)
-            {
-                intersection.add(myEl);
-            }
-        }
-    }
-    return intersection;
+    for (const Element &el : other.els)
+        insertUnique(el);
+    return *this;
 }
 
-Set Set::operator-(const Set &other) const
+// Пересечение и разность собирают результат в отдельный вектор и подменяют els
+// в конце, поэтому корректны и при other == *this.
+Set &Set::operator*=(const Set &other)
 {
-    Set difference = *this;
-    for (const Element &otherEl : other.els)
+    std::vector<Element> kept;
+    for (const Element &el : els)
     {
-        difference.rmv(otherEl);
+        if (other[el])
+            kept.push_back(el);
     }
-    return difference;
+    els = std::move(kept);
+    return *this;
+}
+
+Set &Set::operator-=(const Set &other)
+{
+    std::vector<Element> kept;
+    for (const Element &el : els)
+    {
+        if (!other[el])
+            kept.push_back(el);
+    }
+    els = std::move(kept);
+    return *this;
 }
 
 Set Set::operator+(const Set &other) const
 {
-    Set united = *this;
-    for (const Element &el : other.els)
-    {
-        united.add(el);
-    }
-    return united;
+    Set result = *this;
+    result += other;
+    return result;
 }
 
+Set Set::operator*(const Set &other) const
+{
+    Set result = *this;
+    result *= other;
+    return result;
+}
+
+Set Set::operator-(const Set &other) const
+{
+    Set result = *this;
+    result -= other;
+    return result;
+}
+
+// Булеан без рекурсии: число mask от 0 до 2^N - 1 задаёт подмножество,
+// i-й бит == 1 значит "i-й элемент входит". Элементы уникальны, поэтому
+// подмножества заведомо различны и кладутся напрямую, минуя проверку.
 Set Set::buildBoolean() const
 {
-    Set boolean;
+    const size_t N = els.size();
 
+    if (N >= 63)
+        throw std::length_error("Set is too large to build a boolean.");
+
+    const unsigned long long total = 1ULL << N;
+    Set boolean;
+    for (unsigned long long mask = 0; mask < total; ++mask)
+    {
+        Set subset;
+        for (size_t i = 0; i < N; ++i)
+        {
+            if (mask & (1ULL << i))
+                subset.els.push_back(els[i]);
+        }
+        boolean.els.push_back(Element(subset));
+    }
     return boolean;
 }
