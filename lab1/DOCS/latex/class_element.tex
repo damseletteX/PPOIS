@@ -1,0 +1,142 @@
+\doxysection{Element Class Reference}
+\hypertarget{class_element}{}\label{class_element}\index{Element@{Element}}
+
+
+Represents an element in a set, which can be either an atom (string) or a nested \doxylink{class_set}{Set}.  
+
+
+
+
+{\ttfamily \+\#include $<$set.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_element_a2828c4aecc4535aa7de72b9b598da06c}{Element}} (const \doxymbox{\hyperlink{class_set}{Set}} \&subset\_)
+\begin{DoxyCompactList}\small\item\em Constructs an \doxylink{class_element}{Element} containing a nested \doxylink{class_set}{Set}. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_element_a23a927d85823caf59e98c86c44792ff9}{Element}} (const std::\+string \&atom\_)
+\begin{DoxyCompactList}\small\item\em Constructs an atomic \doxylink{class_element}{Element}. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_element_ac9655f5392fabc0c8b0b1c2118b2778f}{\texorpdfstring{$\sim$}{\string~}\+Element}} ()=default
+\item 
+bool \doxymbox{\hyperlink{class_element_ac1bb3c155da9123cb06dfec67045cfd0}{operator==}} (const \doxymbox{\hyperlink{class_element}{Element}} \&other) const
+\begin{DoxyCompactList}\small\item\em Checks equality between two elements (atomic values or nested sets). \end{DoxyCompactList}\item 
+std::\+string \doxymbox{\hyperlink{class_element_ab1f1fdc56fcce8abd46e673c6b75eda8}{to\+String}} () const
+\begin{DoxyCompactList}\small\item\em Converts the element to its string representation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Represents an element in a set, which can be either an atom (string) or a nested \doxylink{class_set}{Set}. 
+
+Definition at line \doxymbox{\hyperlink{set_8h_source_l00011}{11}} of file \doxymbox{\hyperlink{set_8h_source}{set.\+h}}.
+
+
+
+\label{class_element_doc-constructors}
+\Hypertarget{class_element_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_element_a2828c4aecc4535aa7de72b9b598da06c}\index{Element@{Element}!Element@{Element}}
+\index{Element@{Element}!Element@{Element}}
+\doxysubsubsection{\texorpdfstring{Element()}{Element()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_element_a2828c4aecc4535aa7de72b9b598da06c} 
+Element::\+\+Element (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{class_set}{Set}} \&}]{subset\_}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+
+
+Constructs an \doxylink{class_element}{Element} containing a nested \doxylink{class_set}{Set}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em subset\_} & The \doxylink{class_set}{Set} to be stored inside this element. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \doxymbox{\hyperlink{set_8h_source_l00027}{27}} of file \doxymbox{\hyperlink{set_8h_source}{set.\+h}}.
+
+\Hypertarget{class_element_a23a927d85823caf59e98c86c44792ff9}\index{Element@{Element}!Element@{Element}}
+\index{Element@{Element}!Element@{Element}}
+\doxysubsubsection{\texorpdfstring{Element()}{Element()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_element_a23a927d85823caf59e98c86c44792ff9} 
+Element::\+\+Element (\begin{DoxyParamCaption}\item[{const std::\+string \&}]{atom\_}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+
+
+Constructs an atomic \doxylink{class_element}{Element}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em atom\_} & The string value of the atomic element. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \doxymbox{\hyperlink{set_8h_source_l00035}{35}} of file \doxymbox{\hyperlink{set_8h_source}{set.\+h}}.
+
+\Hypertarget{class_element_ac9655f5392fabc0c8b0b1c2118b2778f}\index{Element@{Element}!````~Element@{\texorpdfstring{$\sim$}{\string~}Element}}
+\index{````~Element@{\texorpdfstring{$\sim$}{\string~}Element}!Element@{Element}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}Element()}{\string~Element()}}
+{\footnotesize\ttfamily \label{class_element_ac9655f5392fabc0c8b0b1c2118b2778f} 
+Element::\+\texorpdfstring{$\sim$}{\string~}\+Element (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+Default destructor. 
+
+\label{class_element_doc-func-members}
+\Hypertarget{class_element_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_element_ac1bb3c155da9123cb06dfec67045cfd0}\index{Element@{Element}!operator==@{operator==}}
+\index{operator==@{operator==}!Element@{Element}}
+\doxysubsubsection{\texorpdfstring{operator==()}{operator==()}}
+{\footnotesize\ttfamily \label{class_element_ac1bb3c155da9123cb06dfec67045cfd0} 
+bool Element::\+operator== (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{class_element}{Element}} \&}]{other}{}\end{DoxyParamCaption}) const}
+
+
+
+Checks equality between two elements (atomic values or nested sets). 
+
+Checks equality between two elements (atomic or nested set).
+
+
+\begin{DoxyParams}{Parameters}
+{\em other} & The element to compare with. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if elements are equal, false otherwise.
+\end{DoxyReturn}
+
+\begin{DoxyParams}{Parameters}
+{\em other} & The element to compare with. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if both elements are of the same type and have equal values, false otherwise. 
+\end{DoxyReturn}
+
+
+Definition at line \doxymbox{\hyperlink{set_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{set_8cpp_source}{set.\+cpp}}.
+
+\Hypertarget{class_element_ab1f1fdc56fcce8abd46e673c6b75eda8}\index{Element@{Element}!toString@{toString}}
+\index{toString@{toString}!Element@{Element}}
+\doxysubsubsection{\texorpdfstring{toString()}{toString()}}
+{\footnotesize\ttfamily \label{class_element_ab1f1fdc56fcce8abd46e673c6b75eda8} 
+std::\+string Element::\+to\+String (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Converts the element to its string representation. 
+
+\begin{DoxyReturn}{Returns}
+std::\+string representation of the element.
+
+std::\+string formatted representation of the atom or nested set. 
+\end{DoxyReturn}
+
+
+Definition at line \doxymbox{\hyperlink{set_8cpp_source_l00035}{35}} of file \doxymbox{\hyperlink{set_8cpp_source}{set.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+include/set.\+h\item 
+src/set.\+cpp\end{DoxyCompactItemize}
