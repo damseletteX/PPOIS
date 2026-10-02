@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\columbina\Documents\UNIK\PPOIS\lab1\SET\unit-test\test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\columbina\Documents\UNIK\PPOIS\lab1\SET\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{64845ED4-7AAA-3A9D-8A48-9E1D745EB3C1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

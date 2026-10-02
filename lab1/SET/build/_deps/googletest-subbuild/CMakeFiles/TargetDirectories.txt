@@ -1,0 +1,3 @@
+C:/Users/columbina/Documents/UNIK/PPOIS/lab1/SET/build/_deps/googletest-subbuild/CMakeFiles/googletest-populate.dir
+C:/Users/columbina/Documents/UNIK/PPOIS/lab1/SET/build/_deps/googletest-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/Users/columbina/Documents/UNIK/PPOIS/lab1/SET/build/_deps/googletest-subbuild/CMakeFiles/ZERO_CHECK.dir
