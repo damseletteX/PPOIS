@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 project(CantorSet LANGUAGES CXX)
  
 set(CMAKE_CXX_STANDARD 17)
@@ -20,20 +20,18 @@ target_link_libraries(set_cli PRIVATE cantor_set)
  
 enable_testing()
  
-find_package(GTest QUIET)
-if(NOT GTest_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        v1.15.2
-    )
-    # Обязательно для MSVC: иначе тесты и основной проект могут линковаться
-    # с разными вариантами рантайма (/MD против /MT) и либо не собраться,
-    # либо упасть на старте с ошибкой вроде "LNK2038 mismatch detected".
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-endif()
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        v1.15.2
+    FIND_PACKAGE_ARGS NAMES GTest
+)
+# Обязательно для MSVC: иначе тесты и основной проект могут линковаться
+# с разными вариантами рантайма (/MD против /MT) и либо не собраться,
+# либо упасть на старте с ошибкой вроде "LNK2038 mismatch detected".
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
  
 add_executable(run_gtests unit-test/test.cpp)
 target_link_libraries(run_gtests PRIVATE cantor_set GTest::gtest_main)
