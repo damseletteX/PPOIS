@@ -12,3 +12,13 @@ Makefile
 
 # Настройки VS Code 
 .vscode/
+
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+build/
+dist/
+*.spec
