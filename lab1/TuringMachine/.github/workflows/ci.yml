@@ -1,0 +1,63 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r requirements.txt
+      - run: ruff check .
+      - run: pytest --cov=src --cov-branch --cov-report=term-missing --cov-fail-under=90
+
+  build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: quality
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            asset: turing-machine-windows.exe
+            command: pyinstaller --onefile --name turing-machine-windows src/main.py
+            path: dist/turing-machine-windows.exe
+          - os: ubuntu-latest
+            asset: turing-machine-linux
+            command: pyinstaller --onefile --name turing-machine-linux src/main.py
+            path: dist/turing-machine-linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python -m pip install pyinstaller
+      - run: ${{ matrix.command }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.path }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/* --generate-notes --repo "$GITHUB_REPOSITORY"
