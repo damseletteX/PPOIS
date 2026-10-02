@@ -1,7 +1,14 @@
-*.exe
-*.bin
-*.obj
-*.ilk
-*.pdb
+# Сборка CMake
+build/
+bin/
+out/
 
+# Кэш и временные файлы CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Настройки VS Code 
 .vscode/
