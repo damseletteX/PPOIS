@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 class Set;
 
@@ -179,4 +180,162 @@ public:
      * @return Formatted std::string representation (e.g., "{a, b}").
      */
     std::string toString() const;
+};
+
+/**
+ * @brief Orchestrates a collection of named Set objects.
+ * @details Owns the mapping from a user-chosen name to a Set and exposes the
+ *          same operations as Set itself, resolved by name. Contains no
+ *          input/output of its own: callers (e.g. a CLI) are responsible for
+ *          reading input and printing results. Errors (missing name, an
+ *          element already present, etc.) are reported via exceptions, the
+ *          same way Set itself reports them.
+ */
+class SetContainer
+{
+    /** Name -> Set storage. */
+    std::map<std::string, Set> sets;
+
+public:
+    SetContainer() = default;
+
+    /**
+     * @brief Checks whether a set with the given name exists.
+     * @param name The name to look up.
+     * @return true if a set with this name exists, false otherwise.
+     */
+    bool exists(const std::string &name) const;
+
+    /**
+     * @brief Looks up a set by name (mutable access).
+     * @param name The name to look up.
+     * @return Reference to the stored Set.
+     * @throws std::invalid_argument if no set with this name exists.
+     */
+    Set &get(const std::string &name);
+
+    /**
+     * @brief Looks up a set by name (read-only access).
+     * @param name The name to look up.
+     * @return Const reference to the stored Set.
+     * @throws std::invalid_argument if no set with this name exists.
+     */
+    const Set &get(const std::string &name) const;
+
+    /**
+     * @brief Stores a set under the given name, creating or overwriting it.
+     * @param name The name to store the set under.
+     * @param value The set to store.
+     * @return true if an existing set with this name was overwritten, false if newly created.
+     */
+    bool store(const std::string &name, const Set &value);
+
+    /**
+     * @brief Creates a new named set by parsing a string description.
+     * @param name The name to store the set under.
+     * @param description Bracket-notation description, e.g. "{a, b, {c}}".
+     * @return true if an existing set with this name was overwritten, false if newly created.
+     * @throws std::invalid_argument if the description is malformed.
+     */
+    bool createFromString(const std::string &name, const std::string &description);
+
+    /**
+     * @brief Adds an element to a named set.
+     * @param name The name of the set to modify.
+     * @param element The element to add.
+     * @throws std::invalid_argument if no set with this name exists.
+     * @throws std::logic_error if the element is already present.
+     */
+    void addElement(const std::string &name, const Element &element);
+
+    /**
+     * @brief Removes an element from a named set.
+     * @param name The name of the set to modify.
+     * @param element The element to remove.
+     * @throws std::invalid_argument if no set with this name exists.
+     * @throws std::logic_error if the element is not found.
+     */
+    void removeElement(const std::string &name, const Element &element);
+
+    /**
+     * @brief Returns the cardinality of a named set.
+     * @param name The name of the set.
+     * @throws std::invalid_argument if no set with this name exists.
+     */
+    size_t cardinality(const std::string &name) const;
+
+    /**
+     * @brief Checks whether a named set is empty.
+     * @param name The name of the set.
+     * @throws std::invalid_argument if no set with this name exists.
+     */
+    bool isEmpty(const std::string &name) const;
+
+    /**
+     * @brief Checks whether an element belongs to a named set.
+     * @param name The name of the set.
+     * @param element The element to check.
+     * @throws std::invalid_argument if no set with this name exists.
+     */
+    bool isMember(const std::string &name, const Element &element) const;
+
+    /**
+     * @brief Checks whether two named sets are equal.
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    bool areEqual(const std::string &a, const std::string &b) const;
+
+    /**
+     * @brief Computes the union of two named sets without storing the result.
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    Set unite(const std::string &a, const std::string &b) const;
+
+    /**
+     * @brief Unites a named set with another, in place (a += b).
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    void uniteInPlace(const std::string &a, const std::string &b);
+
+    /**
+     * @brief Computes the intersection of two named sets without storing the result.
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    Set intersect(const std::string &a, const std::string &b) const;
+
+    /**
+     * @brief Intersects a named set with another, in place (a *= b).
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    void intersectInPlace(const std::string &a, const std::string &b);
+
+    /**
+     * @brief Computes the difference of two named sets without storing the result.
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    Set difference(const std::string &a, const std::string &b) const;
+
+    /**
+     * @brief Subtracts a named set from another, in place (a -= b).
+     * @throws std::invalid_argument if either name does not exist.
+     */
+    void differenceInPlace(const std::string &a, const std::string &b);
+
+    /**
+     * @brief Builds the power set of a named set without storing the result.
+     * @throws std::invalid_argument if the name does not exist.
+     * @throws std::length_error if the set's cardinality is 63 or greater.
+     */
+    Set powerSet(const std::string &name) const;
+
+    /**
+     * @brief Checks whether the container holds no named sets at all.
+     */
+    bool empty() const;
+
+    /**
+     * @brief Returns the underlying name -> Set storage for read-only iteration
+     *        (e.g. to list every stored set).
+     */
+    const std::map<std::string, Set> &all() const;
 };

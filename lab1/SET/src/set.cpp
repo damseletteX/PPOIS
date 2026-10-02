@@ -339,3 +339,195 @@ Set Set::buildBoolean() const
     }
     return boolean;
 }
+
+// ============================================================================
+// SETCONTAINER METHODS
+// ============================================================================
+
+/**
+ * @brief Checks whether a set with the given name exists.
+ */
+bool SetContainer::exists(const std::string &name) const
+{
+    return sets.count(name) > 0;
+}
+
+/**
+ * @brief Looks up a set by name (mutable access).
+ * @throws std::invalid_argument if no set with this name exists.
+ */
+Set &SetContainer::get(const std::string &name)
+{
+    auto it = sets.find(name);
+    if (it == sets.end())
+        throw std::invalid_argument("Set '" + name + "' not found.");
+    return it->second;
+}
+
+/**
+ * @brief Looks up a set by name (read-only access).
+ * @throws std::invalid_argument if no set with this name exists.
+ */
+const Set &SetContainer::get(const std::string &name) const
+{
+    auto it = sets.find(name);
+    if (it == sets.end())
+        throw std::invalid_argument("Set '" + name + "' not found.");
+    return it->second;
+}
+
+/**
+ * @brief Stores a set under the given name, creating or overwriting it.
+ * @return true if an existing set with this name was overwritten, false if newly created.
+ */
+bool SetContainer::store(const std::string &name, const Set &value)
+{
+    bool existed = exists(name);
+    sets.insert_or_assign(name, value);
+    return existed;
+}
+
+/**
+ * @brief Creates a new named set by parsing a string description.
+ * @throws std::invalid_argument if the description is malformed (propagated from Set's own parser).
+ */
+bool SetContainer::createFromString(const std::string &name, const std::string &description)
+{
+    return store(name, Set(description));
+}
+
+/**
+ * @brief Adds an element to a named set.
+ * @throws std::invalid_argument if no set with this name exists.
+ * @throws std::logic_error if the element is already present.
+ */
+void SetContainer::addElement(const std::string &name, const Element &element)
+{
+    get(name).add(element);
+}
+
+/**
+ * @brief Removes an element from a named set.
+ * @throws std::invalid_argument if no set with this name exists.
+ * @throws std::logic_error if the element is not found.
+ */
+void SetContainer::removeElement(const std::string &name, const Element &element)
+{
+    get(name).rmv(element);
+}
+
+/**
+ * @brief Returns the cardinality of a named set.
+ * @throws std::invalid_argument if no set with this name exists.
+ */
+size_t SetContainer::cardinality(const std::string &name) const
+{
+    return get(name).getCardinality();
+}
+
+/**
+ * @brief Checks whether a named set is empty.
+ * @throws std::invalid_argument if no set with this name exists.
+ */
+bool SetContainer::isEmpty(const std::string &name) const
+{
+    return get(name).isEmpty();
+}
+
+/**
+ * @brief Checks whether an element belongs to a named set.
+ * @throws std::invalid_argument if no set with this name exists.
+ */
+bool SetContainer::isMember(const std::string &name, const Element &element) const
+{
+    return get(name)[element];
+}
+
+/**
+ * @brief Checks whether two named sets are equal.
+ * @throws std::invalid_argument if either name does not exist.
+ */
+bool SetContainer::areEqual(const std::string &a, const std::string &b) const
+{
+    return get(a) == get(b);
+}
+
+/**
+ * @brief Computes the union of two named sets without storing the result.
+ * @throws std::invalid_argument if either name does not exist.
+ */
+Set SetContainer::unite(const std::string &a, const std::string &b) const
+{
+    return get(a) + get(b);
+}
+
+/**
+ * @brief Unites a named set with another, in place (a += b).
+ * @throws std::invalid_argument if either name does not exist.
+ */
+void SetContainer::uniteInPlace(const std::string &a, const std::string &b)
+{
+    get(a) += get(b);
+}
+
+/**
+ * @brief Computes the intersection of two named sets without storing the result.
+ * @throws std::invalid_argument if either name does not exist.
+ */
+Set SetContainer::intersect(const std::string &a, const std::string &b) const
+{
+    return get(a) * get(b);
+}
+
+/**
+ * @brief Intersects a named set with another, in place (a *= b).
+ * @throws std::invalid_argument if either name does not exist.
+ */
+void SetContainer::intersectInPlace(const std::string &a, const std::string &b)
+{
+    get(a) *= get(b);
+}
+
+/**
+ * @brief Computes the difference of two named sets without storing the result.
+ * @throws std::invalid_argument if either name does not exist.
+ */
+Set SetContainer::difference(const std::string &a, const std::string &b) const
+{
+    return get(a) - get(b);
+}
+
+/**
+ * @brief Subtracts a named set from another, in place (a -= b).
+ * @throws std::invalid_argument if either name does not exist.
+ */
+void SetContainer::differenceInPlace(const std::string &a, const std::string &b)
+{
+    get(a) -= get(b);
+}
+
+/**
+ * @brief Builds the power set of a named set without storing the result.
+ * @throws std::invalid_argument if the name does not exist.
+ * @throws std::length_error if the set's cardinality is 63 or greater (propagated from Set::buildBoolean).
+ */
+Set SetContainer::powerSet(const std::string &name) const
+{
+    return get(name).buildBoolean();
+}
+
+/**
+ * @brief Checks whether the container holds no named sets at all.
+ */
+bool SetContainer::empty() const
+{
+    return sets.empty();
+}
+
+/**
+ * @brief Returns the underlying name -> Set storage for read-only iteration.
+ */
+const std::map<std::string, Set> &SetContainer::all() const
+{
+    return sets;
+}
