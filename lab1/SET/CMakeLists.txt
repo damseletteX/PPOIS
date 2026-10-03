@@ -27,9 +27,7 @@ FetchContent_Declare(
     GIT_TAG        v1.15.2
     FIND_PACKAGE_ARGS NAMES GTest
 )
-# Обязательно для MSVC: иначе тесты и основной проект могут линковаться
-# с разными вариантами рантайма (/MD против /MT) и либо не собраться,
-# либо упасть на старте с ошибкой вроде "LNK2038 mismatch detected".
+
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
  

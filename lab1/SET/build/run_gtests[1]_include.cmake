@@ -1,5 +1,0 @@
-if(EXISTS "C:/Users/columbina/Documents/UNIK/PPOIS/lab1/SET/build/run_gtests[1]_tests.cmake")
-  include("C:/Users/columbina/Documents/UNIK/PPOIS/lab1/SET/build/run_gtests[1]_tests.cmake")
-else()
-  add_test(run_gtests_NOT_BUILT run_gtests_NOT_BUILT)
-endif()
