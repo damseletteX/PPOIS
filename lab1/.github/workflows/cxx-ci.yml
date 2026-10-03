@@ -17,7 +17,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y cmake ninja-build libgtest-dev
 
       - name: Configure
-        run: cmake -S . -B build -G Ninja
+        run: cmake -S .\lab1\Set -B build -G Ninja
 
       - name: Build
         run: cmake --build build
