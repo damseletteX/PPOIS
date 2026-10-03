@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: ["main", "1stLab"]
 
+  workflow_dispatch:
+
 jobs:
   build-and-test:
     name: Build & test
