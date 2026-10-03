@@ -25,15 +25,6 @@ target_link_libraries(set_cli PRIVATE cantor_set)
 
 enable_testing()
 
-# Старый тестовый набор на самодельном фреймворке (unit-test/test.cpp):
-# своя main(), поэтому просто обычный add_executable, без find_package.
-option(BUILD_LEGACY_TESTS "Build unit-test/test.cpp (custom framework, own main())" ON)
-if(BUILD_LEGACY_TESTS)
-    add_executable(run_tests unit-test/test.cpp)
-    target_link_libraries(run_tests PRIVATE cantor_set)
-    add_test(NAME legacy_tests COMMAND run_tests)
-endif()
-
 # Новый тестовый набор на GoogleTest (unit-test/test_set.cpp): своей main()
 # не имеет, её даёт GTest::gtest_main.
 #
@@ -56,7 +47,7 @@ if(NOT GTest_FOUND)
     FetchContent_MakeAvailable(googletest)
 endif()
 
-add_executable(run_gtests unit-test/test_set.cpp)
+add_executable(run_gtests unit-test/test.cpp)
 target_link_libraries(run_gtests PRIVATE cantor_set GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(run_gtests)
