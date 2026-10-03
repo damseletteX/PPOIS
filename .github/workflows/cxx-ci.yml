@@ -20,7 +20,7 @@ jobs:
       - name: Show repository files
         run: find . -name CMakeLists.txt -print
       - name: Configure
-        run: cmake -S ./lab1/ -B build -G Ninja
+        run: cmake -S ./lab1/SET -B build -G Ninja
       - name: Build
         run: cmake --build build
 
