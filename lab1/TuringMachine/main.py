@@ -1,8 +1,4 @@
-import TM
-import CLI
-
-def main():
-    CLI()
+from CLI import startCli
     
 if __name__ == "__main__":
-    main()
+    startCli()
