@@ -1,13 +1,16 @@
+"""Binary increment/decrement Turing machine: tape, head and orchestrating machine."""
+
 BLANK, LEFT, RIGHT, STAY = None, -1, 1, 0
 START, DONE = "S", "Y"
 
 
 class Tape:
-    """ A binary number, least-significant-bit first, surrounded by blanks.
+    """A binary number, least-significant-bit first, surrounded by blanks.
 
     Invariant (restored by normalize): [BLANK, d0, d1, ..., dn, BLANK],
     with at least one digit and no leading zeros (except the number 0 itself).
     """
+
     def __init__(self, number: int):
         if number < 0:
             raise ValueError("Only non-negative numbers are supported.")
@@ -19,13 +22,13 @@ class Tape:
         return [BLANK, *bits, BLANK]
 
     def read(self, pos: int):
-        """ Anything outside the stored cells counts as blank. """
+        """Anything outside the stored cells counts as blank."""
         if 0 <= pos < len(self._cells):
             return self._cells[pos]
         return BLANK
 
     def write(self, pos: int, symbol) -> None:
-        """ Write any symbol; the tape grows to the right on demand. """
+        """Write any symbol; the tape grows to the right on demand."""
         if pos < 0:
             raise IndexError("Head moved off the left end of the tape.")
         while pos >= len(self._cells):
@@ -33,7 +36,7 @@ class Tape:
         self._cells[pos] = symbol
 
     def flip(self, pos: int) -> None:
-        """ Flip a real digit (0 <-> 1). Borders and out-of-range are rejected. """
+        """Flip a real digit (0 <-> 1). Borders and out-of-range are rejected."""
         if not 1 <= pos <= len(self._cells) - 2:
             raise ValueError("No such cell.")
         if self._cells[pos] is BLANK:
@@ -42,7 +45,7 @@ class Tape:
         self.normalize()
 
     def normalize(self) -> None:
-        """ Restore the invariant: blanks at both ends, no leading zeros. """
+        """Restore the invariant: blanks at both ends, no leading zeros."""
         digits = self.digits
         while len(digits) > 1 and digits[-1] == 0:
             digits.pop()
@@ -50,7 +53,7 @@ class Tape:
 
     @property
     def digits(self) -> list:
-        """ The digits without blanks (a new list, safe to modify). """
+        """The digits without blanks (a new list, safe to modify)."""
         return [c for c in self._cells if c is not BLANK]
 
     def toInt(self) -> int:
@@ -60,27 +63,27 @@ class Tape:
         return len(self.digits)
 
     def __str__(self) -> str:
-        """ Most-significant bit first, like normal binary notation. """
+        """Most-significant bit first, like normal binary notation."""
         return "".join(str(d) for d in reversed(self.digits))
 
 
 class Head:
-    """ Holds the state and position, and applies a rules table to a tape. """
-    INCREMENT_RULES = {
-        (START, 1):     (START, 0, RIGHT),  
-        (START, 0):     (DONE,  1, STAY),
-        (START, BLANK): (DONE,  1, STAY),  
-    }
+    """Holds the state and position, and applies a rules table to a tape."""
 
+    INCREMENT_RULES = {
+        (START, 1):     (START, 0, RIGHT), 
+        (START, 0):     (DONE,  1, STAY), 
+        (START, BLANK): (DONE,  1, STAY), 
+    }
     DECREMENT_RULES = {
-        (START, 0): (START, 1, RIGHT),      
+        (START, 0): (START, 1, RIGHT),     
         (START, 1): (DONE,  0, STAY),
     }
 
     def __init__(self, rules: dict):
         self.rules = rules
         self.state = START
-        self.pos = 1                         
+        self.pos = 1                
 
     def step(self, tape: Tape) -> None:
         symbol = tape.read(self.pos)
@@ -97,16 +100,18 @@ class Head:
 
 
 class TuringMachine:
-    """ Orchestrating machine combining a head and a tape. """
+    """Orchestrating machine combining a head and a tape """
+
     def __init__(self, num: int):
         self.theTape = Tape(num)
 
     @property
     def theNum(self) -> int:
-        return self.theTape.toInt()        
+        """The current number, always derived from the tape (never stale)."""
+        return self.theTape.toInt()
 
     def _run(self, rules: dict) -> None:
-        head = Head(rules)                 
+        head = Head(rules)                  # fresh state and position every run
         while not head.halted:
             head.step(self.theTape)
         self.theTape.normalize()
@@ -122,22 +127,13 @@ class TuringMachine:
     def toInt(self) -> int:
         return self.theTape.toInt()
 
+    def flipBit(self, index: int) -> None:
+        self.theTape.flip(index)
+
     def showRules(self) -> None:
         print(f"Increment rules: {Head.INCREMENT_RULES}\n"
               f"Decrement rules: {Head.DECREMENT_RULES}")
 
     def showTape(self) -> None:
-        print(f"Tape (LSB first, index from 1): {list(reversed(str(self.theTape)))}\n"
+        print(f"Tape (LSB first, index from 1): {self.theTape.digits}\n"
               f"As binary: {self.theTape}, which represents {self.theNum}.")
-
-    def flipBit(self, index: int) -> None:
-        self.theTape.flip(index)
-
-    def changeTape(self) -> None:
-        print("Enter the index of the bit to flip:")
-        for i, bit in enumerate(self.theTape.digits, start=1):
-            print(f"{i}) {bit}")
-        try:
-            self.flipBit(int(input()))
-        except ValueError as error:       
-            print(f"! {error}")

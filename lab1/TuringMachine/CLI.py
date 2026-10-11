@@ -1,46 +1,77 @@
-"""console interface for Turing Machine operation"""
+"""Console interface for Turing Machine operation."""
 from TM import TuringMachine
 
+MENU = (
+    "Choose an operation:\n"
+    "1) Start new machine\t 2) Show tape\t 3) Perform increment\t 4) Perform decrement\n"
+    "5) Show rules\t 6) Show current number\t 7) Change tape\t 8) Exit\n"
+)
+
+
+def askMachine() -> TuringMachine | None:
+    """Ask for a number and build a machine; return None on invalid input."""
+    try:
+        num = int(input("Enter a non-negative number to create a new machine: "))
+        return TuringMachine(num)
+    except ValueError as error:      # not an integer, or negative
+        print(f"! {error}. HINT: Input must be a non-negative integer.\n")
+        return None
+
+
+def changeTape(machine: TuringMachine) -> None:
+    print("Enter the index of the bit to flip:")
+    for i, bit in enumerate(machine.theTape.digits, start=1):
+        print(f"{i}) {bit}")
+    try:
+        machine.flipBit(int(input()))
+    except ValueError as error:      # not a number, out of range, or blank
+        print(f"! {error}\n")
+    else:
+        print(f"! Bit flipped. Tape: {machine.theTape}, number: {machine.theNum}\n")
+
+
 def startCli() -> None:
-    num = int(input("Turing machine operator. Enter a number to create new machine: "))
-    newTM = TuringMachine(num)
+    print("Turing machine operator.")
+    machine = None
+    while machine is None:           # keep asking until the first machine is valid
+        machine = askMachine()
+
     while True:
         try:
-            choice = int(input("Choose an operation:\n1) Start new machine\t 2) Show tape\t 3) Perform increment\t 4) Perform decrement\t 5) Show rules\t 6) Show current number\t 7) Change tape\n8) Exit\n"))
-        except Exception as error:
-            print(f"! {error}. HINT: Input must be an integer.\n")                
+            choice = int(input(MENU))
+        except ValueError as error:
+            print(f"! {error}. HINT: Input must be an integer.\n")
             continue
+
         match choice:
-            case 1:  
-                try:
-                    num = int(input("Turing machine operator. Enter a number to create new machine: "))
-                    newTM = TuringMachine(num)               
-                except Exception as error:
-                    print(f"! {error}. HINT: Input must be an integer.\n")                
-                    continue
+            case 1:
+                new = askMachine()
+                if new is not None:  # on bad input keep the old machine
+                    machine = new
             case 2:
-                newTM.showTape()
+                machine.showTape()
             case 3:
-                before = str(newTM.theTape)
-                newTM.increment()
-                print(f"! Increment completed.\nInitial tape: {before}\nNew tape: {newTM.theTape}\nNew number: {newTM.toInt()}\n")
+                before = str(machine.theTape)
+                machine.increment()
+                print(f"! Increment completed.\nInitial tape: {before}\n"
+                      f"New tape: {machine.theTape}\nNew number: {machine.theNum}\n")
             case 4:
-                before = str(newTM.theTape)
+                before = str(machine.theTape)
                 try:
-                    newTM.decrement()
+                    machine.decrement()
                 except ValueError as error:
-                    print(f"! {error}")
+                    print(f"! {error}\n")
                 else:
-                    print(f"! Decrement completed.\nInitial tape: {before}\nNew tape: {newTM.theTape}\nNew number: {newTM.toInt()}\n")
+                    print(f"! Decrement completed.\nInitial tape: {before}\n"
+                          f"New tape: {machine.theTape}\nNew number: {machine.theNum}\n")
             case 5:
-                newTM.showRules()
+                machine.showRules()
             case 6:
-                print(f"! Current number is {newTM.theNum}.\n")
+                print(f"! Current number is {machine.theNum}.\n")
             case 7:
-                newTM.changeTape()
-                newTM.showTape()
+                changeTape(machine)
             case 8:
                 print("! Bye-bye :)\n")
                 return
             case _:
-                print("Invalid choice")
+                print("! Invalid choice.\n")
