@@ -1,9 +1,8 @@
 """Unit tests for TM.py (no CLI involved)."""
 import pytest
 
-from TM import BLANK, DONE, LEFT, RIGHT, START, STAY, Head, Tape, TuringMachine
-
-
+from TM import (BLANK, DECREMENT_RULES, DONE, INCREMENT_RULES, LEFT, RIGHT,
+                START, STAY, Head, Tape, TuringMachine)
 # ---------------------------------------------------------------- Tape
 
 def test_create_tape_is_lsb_first_with_blank_borders():
@@ -135,14 +134,14 @@ def test_tape_roundtrip(n):
 # ---------------------------------------------------------------- Head
 
 def test_head_initial_state():
-    h = Head(Head.INCREMENT_RULES)
+    h = Head(INCREMENT_RULES)
     assert h.state == START
     assert h.pos == 1
     assert not h.halted
 
 
 def test_carry_then_halt():
-    t, h = Tape(1), Head(Head.INCREMENT_RULES)
+    t, h = Tape(1), Head(INCREMENT_RULES)
     h.step(t)                          # reads 1: write 0, move right
     assert (h.state, h.pos) == (START, 2)
     h.step(t)                          # reads blank: write 1, halt
@@ -151,7 +150,7 @@ def test_carry_then_halt():
 
 
 def test_increment_stops_at_first_zero():
-    t, h = Tape(2), Head(Head.INCREMENT_RULES)    # 10
+    t, h = Tape(2), Head(INCREMENT_RULES)    # 10
     h.step(t)
     assert h.halted
     assert h.pos == 1                  # STAY: head did not move
@@ -159,7 +158,7 @@ def test_increment_stops_at_first_zero():
 
 
 def test_decrement_borrow():
-    t, h = Tape(4), Head(Head.DECREMENT_RULES)    # 100
+    t, h = Tape(4), Head(DECREMENT_RULES)    # 100
     while not h.halted:
         h.step(t)
     t.normalize()
@@ -167,7 +166,7 @@ def test_decrement_borrow():
 
 
 def test_missing_rule_raises():
-    t, h = Tape(0), Head(Head.DECREMENT_RULES)
+    t, h = Tape(0), Head(DECREMENT_RULES)
     h.step(t)                          # 0 -> 1, move right
     with pytest.raises(ValueError, match="No rule"):
         h.step(t)                      # blank has no decrement rule

@@ -3,6 +3,17 @@
 BLANK, LEFT, RIGHT, STAY = None, -1, 1, 0
 START, DONE = "S", "Y"
 
+Rules = dict[tuple[str, int | None], tuple[str, int | None, int]]
+INCREMENT_RULES: Rules = {
+    (START, 1):     (START, 0, RIGHT),  # carry: flip 1 -> 0, keep going
+    (START, 0):     (DONE,  1, STAY),   # absorb the carry
+    (START, BLANK): (DONE,  1, STAY),   # carry past the top bit
+}
+
+DECREMENT_RULES: Rules = {
+    (START, 0): (START, 1, RIGHT),      # borrow: flip 0 -> 1, keep going
+    (START, 1): (DONE,  0, STAY),       # absorb the borrow
+}
 
 class Tape:
     """A binary number, least-significant-bit first, surrounded by blanks.
@@ -70,20 +81,10 @@ class Tape:
 class Head:
     """Holds the state and position, and applies a rules table to a tape."""
 
-    INCREMENT_RULES = {
-        (START, 1):     (START, 0, RIGHT), 
-        (START, 0):     (DONE,  1, STAY), 
-        (START, BLANK): (DONE,  1, STAY), 
-    }
-    DECREMENT_RULES = {
-        (START, 0): (START, 1, RIGHT),     
-        (START, 1): (DONE,  0, STAY),
-    }
-
-    def __init__(self, rules: dict):
+    def __init__(self, rules: Rules):
         self.rules = rules
         self.state = START
-        self.pos = 1                
+        self.pos = 1
 
     def step(self, tape: Tape) -> None:
         symbol = tape.read(self.pos)
@@ -117,22 +118,22 @@ class TuringMachine:
         self.theTape.normalize()
 
     def increment(self) -> None:
-        self._run(Head.INCREMENT_RULES)
+        self._run(INCREMENT_RULES)
 
     def decrement(self) -> None:
         if self.theNum == 0:
             raise ValueError("Cannot decrement 0.")
-        self._run(Head.DECREMENT_RULES)
+        self._run(DECREMENT_RULES)
+
+    def showRules(self) -> None:
+        print(f"Increment rules: {INCREMENT_RULES}\n"
+            f"Decrement rules: {DECREMENT_RULES}")
 
     def toInt(self) -> int:
         return self.theTape.toInt()
 
     def flipBit(self, index: int) -> None:
         self.theTape.flip(index)
-
-    def showRules(self) -> None:
-        print(f"Increment rules: {Head.INCREMENT_RULES}\n"
-              f"Decrement rules: {Head.DECREMENT_RULES}")
 
     def showTape(self) -> None:
         print(f"Tape (LSB first, index from 1): {self.theTape.digits}\n"
