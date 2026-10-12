@@ -6,8 +6,8 @@ Laboratory works for the PPOIS course.
 
 | Lab | Language | Contents                                                           | Docs                                                                                                                                                             |
 |-----|----------|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | Python   | [Dictionary](./lab_1/dictionary), [Polynomial](./lab_1/polynomial) | [dictionary](https://yulia-ph.github.io/ppois/lab_1/dictionary/dictionary.html), [polynomial](https://yulia-ph.github.io/ppois/lab_1/polynomial/polynomial.html) |
-| 2   | Python   | [Lab_2](./lab_2)                                                   | -                                                                                                                                                                |
+| 1   | C++/Python   | [Set](./lab1/Set), [Turing Machine](./lab1/TuringMachine) | [Set](https://damseletteX.github.io/ppois/lab1/DOCS/htmlSet/index.html), [Turing Machine](https://damseletteX.github.io/ppois/lab1/DOCS/) |
+| 2   | Python   | [Lab_2](./lab2)                                                   | -                                                                                                                                                                |
 
 ## Requirements
 - CMake >=3.16
