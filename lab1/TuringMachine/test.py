@@ -1,8 +1,20 @@
 """Unit tests for TM.py (no CLI involved)."""
 import pytest
 
-from TM import (BLANK, DECREMENT_RULES, DONE, INCREMENT_RULES, LEFT, RIGHT,
-                START, STAY, Head, Tape, TuringMachine)
+from TM import (
+    BLANK,
+    DECREMENT_RULES,
+    DONE,
+    INCREMENT_RULES,
+    LEFT,
+    RIGHT,
+    START,
+    STAY,
+    Head,
+    Tape,
+    TuringMachine,
+)
+
 # ---------------------------------------------------------------- Tape
 
 def test_create_tape_is_lsb_first_with_blank_borders():
