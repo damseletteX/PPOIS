@@ -3,6 +3,14 @@ build/
 bin/
 out/
 
+*.o
+*.obj
+*.d
+*.gch
+*.pch
+*.exe
+
+
 # Кэш и временные файлы CMake
 CMakeCache.txt
 CMakeFiles/
@@ -23,3 +31,4 @@ htmlcov/
 build/
 dist/
 *.spec
+*.egg-info/

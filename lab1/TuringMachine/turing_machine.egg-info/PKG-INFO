@@ -1,6 +1,0 @@
-Metadata-Version: 2.4
-Name: turing-machine
-Version: 0.1.0
-Summary: Binary increment/decrement Turing machine with a console interface
-Requires-Python: >=3.14
-Description-Content-Type: text/markdown

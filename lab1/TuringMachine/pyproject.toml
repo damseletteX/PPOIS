@@ -11,6 +11,7 @@ turing-machine = "CLI:startCli"
 
 [dependency-groups]
 dev = [
+    "pdoc>=16.0.0",
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.17.0",
