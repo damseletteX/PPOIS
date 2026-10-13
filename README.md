@@ -6,8 +6,8 @@ Laboratory works for the PPOIS course.
 
 | Lab | Language | Contents                                                           | Docs                                                                                                                                                             |
 |-----|----------|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | C++/Python   | [Set](./lab1/Set), [Turing Machine](./lab1/TuringMachine) | [Set](https://damseletteX.github.io/ppois/lab1/DOCS/htmlSet/index.html), [Turing Machine](https://damseletteX.github.io/ppois/lab1/DOCS/) |
-| 2   | Python   | [Lab_2](./lab2)                                                   | -                                                                                                                                                                |
+| 1   | C++/Python   | [Set](./lab1/Set), [Turing Machine](./lab1/TuringMachine) | [Set](https://damseletteX.github.io/ppois/lab1/DOCS/htmlSet/index.html), [Turing Machine]([https://damseletteX.github.io/ppois/lab1/DOCS/](https://damselettex.github.io/PPOIS/TM.html)) |
+| 2   | Python   | [lab2](./lab2)                                                   | -                                                                                                                                                                |
 
 ## Requirements
 - CMake >=3.16
