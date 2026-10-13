@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <utility>
 
+#define kMaxPowerSetCardinality 63
+
 // ============================================================================
 // ELEMENT METHODS
 // ============================================================================
@@ -322,7 +324,7 @@ Set Set::buildBoolean() const
 {
     const size_t N = els.size();
 
-    if (N >= 63)
+    if (N >= kMaxPowerSetCardinality)
         throw std::length_error("Set is too large to build a boolean.");
 
     const unsigned long long total = 1ULL << N;

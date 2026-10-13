@@ -206,11 +206,11 @@ int main()
         if (std::cin.fail())
         {
             std::cin.clear();
-            std::cin.ignore(10000, '\n');
-            std::cout << "Введите число от 0 до 11." << std::endl;
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Введите число от 0 до 10." << std::endl;
             continue;
         }
-        std::cin.ignore(10000, '\n');
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         try
         {

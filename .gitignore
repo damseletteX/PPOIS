@@ -32,3 +32,4 @@ build/
 dist/
 *.spec
 *.egg-info/
+docs-site/
