@@ -1,0 +1,9 @@
+CLI.py
+TM.py
+main.py
+pyproject.toml
+turing_machine.egg-info/PKG-INFO
+turing_machine.egg-info/SOURCES.txt
+turing_machine.egg-info/dependency_links.txt
+turing_machine.egg-info/entry_points.txt
+turing_machine.egg-info/top_level.txt
