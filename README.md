@@ -4,7 +4,7 @@
 
 | Lab | Language | Contents                                                           | Docs                                                                                                                                                             |
 |-----|----------|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | C++, Python   | [Cantor set](./lab1/Set), [Turing machine](./lab1/TuringMachine) | [Cantor set](https://damselettex.github.io/PPOIS/), [Turing machine](https://damseletteX.github.io/PPOIS/lab1/TuringMachine/docs-site) |
+| 1   | C++, Python   | [Cantor set](./lab1/Set), [Turing machine](./lab1/TuringMachine) | [Cantor set](https://damselettex.github.io/PPOIS/), [Turing machine](https://damselettex.github.io/PPOIS/pdoc/TM.htmlhttps://damselettex.github.io/PPOIS/pdoc/) |
 | 2   | Python   | [lab2](./lab2)                                                   | [Cars](https://)                                                                          |
 
 ## Requirements
