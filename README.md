@@ -1,27 +1,22 @@
 # PPOIS Labs
 
-Laboratory works for the PPOIS course.
-
 ## Structure
 
 | Lab | Language | Contents                                                           | Docs                                                                                                                                                             |
 |-----|----------|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | C++/Python   | [Set](./lab1/Set), [Turing Machine](./lab1/TuringMachine) | [Set](https://damseletteX.github.io/ppois/lab1/DOCS/htmlSet/index.html), [Turing Machine]([https://damseletteX.github.io/ppois/lab1/DOCS/](https://damselettex.github.io/PPOIS/TM.html)) |
-| 2   | Python   | [lab2](./lab2)                                                   | -                                                                                                                                                                |
+| 1   | C++, Python   | [Cantor set](./lab1/Set), [Turing machine](./lab1/TuringMachine) | [Cantor set](https://damselettex.github.io/PPOIS/), [Turing machine](https://damselettex.github.io/PPOIS/pdoc/) |
+| 2   | Python   | [lab2](./lab2)                                                   | [Cars](https://)                                                                          |
 
 ## Requirements
-- CMake >=3.16
-- [CMake] — build tool
-- Python >=3.14
+- C++ 17+
+- Python 3.14+
 - [uv](https://docs.astral.sh/uv/) — package manager
 
 ## Documentation
 
-Generated with [pdoc](https://pdoc.dev/) and published via GitHub Pages:
-
-- [Laboratory works](WIP)
+Generated with [Doxygen](https://www.doxygen.nl/) and [pdoc](https://pdoc.dev/) and published via GitHub Pages
 
 ## Releases
 
-Prebuilt binaries for Debian are published in [Releases](WIP)
+Prebuilt binaries for Windows 11 are published in [Releases](https://github.com//ppois/releases)
 

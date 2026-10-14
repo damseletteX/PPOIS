@@ -1,0 +1,59 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy static content to Pages
+
+on:
+  push:
+    branches: ["main", "1stLab"] 
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Site Folder
+        run: mkdir -p _site
+
+      - name: Copy Doxygen Docs
+        run: |
+          cp -r lab1/DOCS/Set/* _site/
+          
+          # Если вы решите собирать Doxygen прямо на CI:
+          # sudo apt-get update && sudo apt-get install -y doxygen
+          # doxygen lab1/DOCS/Doxyfile
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build pdoc Docs
+        run: |
+          cd lab1/TuringMachine
+          uv sync --locked
+          uv run pdoc -o ../../_site/pdoc TM CLI
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
