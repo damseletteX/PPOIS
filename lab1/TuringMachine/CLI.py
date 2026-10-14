@@ -9,31 +9,39 @@ MENU = (
 
 
 def askMachine() -> TuringMachine | None:
-    """Ask for a number and build a machine; return None on invalid input."""
+    """Ask for a number and build a machine; return None on invalid input.
+
+    :return: A new TuringMachine instance initialized with the given number, or None if input was invalid.
+    """
     try:
         num = int(input("Enter a non-negative number to create a new machine: "))
         return TuringMachine(num)
-    except ValueError as error:      # not an integer, or negative
+    except ValueError as error:     
         print(f"! {error}. HINT: Input must be a non-negative integer.\n")
         return None
 
 
 def changeTape(machine: TuringMachine) -> None:
+    """Display tape digits and prompt the user to flip a specific bit.
+
+    :param machine: The active TuringMachine instance whose tape will be modified.
+    """
     print("Enter the index of the bit to flip:")
     for i, bit in enumerate(machine.theTape.digits, start=1):
         print(f"{i}) {bit}")
     try:
         machine.flipBit(int(input()))
-    except ValueError as error:      # not a number, out of range, or blank
+    except ValueError as error:     
         print(f"! {error}\n")
     else:
         print(f"! Bit flipped. Tape: {machine.theTape}, number: {machine.theNum}\n")
 
 
 def startCli() -> None:
+    """Start the main command-line interface loop for interacting with the Turing machine."""
     print("Turing machine operator.")
     machine = None
-    while machine is None:           # keep asking until the first machine is valid
+    while machine is None:         
         machine = askMachine()
 
     while True:
@@ -46,7 +54,7 @@ def startCli() -> None:
         match choice:
             case 1:
                 new = askMachine()
-                if new is not None:  # on bad input keep the old machine
+                if new is not None:  
                     machine = new
             case 2:
                 machine.showTape()
