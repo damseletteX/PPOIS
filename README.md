@@ -18,5 +18,5 @@ Generated with [Doxygen](https://www.doxygen.nl/) and [pdoc](https://pdoc.dev/) 
 
 ## Releases
 
-Prebuilt binaries for Windows 11 are published in [Releases](https://github.com//ppois/releases)
+Prebuilt *.exe files for Windows 11 are published in [Releases](https://github.com/damseletteX/PPOIS/releases/tag/lab.1)
 
