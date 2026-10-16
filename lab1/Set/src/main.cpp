@@ -2,16 +2,14 @@
 
 #include <iostream>
 #include <exception>
-#include <map>
+#include <limits>
+#include <stdexcept>
 #include <string>
 #include "set.h"
-#include <limits>
-namespace
-{
 
-std::map<std::string, Set> sets;
+static SetContainer container;
 
-std::string trim(const std::string &s)
+static std::string trim(const std::string &s)
 {
     const char *ws = " \t\n\r";
     size_t b = s.find_first_not_of(ws);
@@ -21,25 +19,25 @@ std::string trim(const std::string &s)
     return s.substr(b, e - b + 1);
 }
 
-void checkName(const std::string &name)
+static void checkName(const std::string &name)
 {
     if (name.empty() || name.find_first_of(" \t") != std::string::npos)
-        throw std::invalid_argument("Имя не должно быть пустым и не должно содержать пробелов.");
+        throw std::invalid_argument("Name must not be empty and must not contain spaces.");
 }
 
-Element parseElement(const std::string &raw)
+static Element parseElement(const std::string &raw)
 {
     std::string t = trim(raw);
     if (t.empty())
-        throw std::invalid_argument("Элемент не может быть пустым.");
+        throw std::invalid_argument("Element cannot be empty.");
     if (t.front() == '{')
         return Element(Set(t));
     if (t.find_first_of("{}, \t") != std::string::npos)
-        throw std::invalid_argument("Атом не должен содержать символы { } , и пробелы.");
+        throw std::invalid_argument("Atom must not contain characters { } , and spaces.");
     return Element(t);
 }
 
-std::string ask(const std::string &question)
+static std::string ask(const std::string &question)
 {
     std::cout << question;
     std::string line;
@@ -47,139 +45,128 @@ std::string ask(const std::string &question)
     return trim(line);
 }
 
-Set &getSet(const std::string &name)
+static void printSet(const std::string &name, const Set &s)
 {
-    auto it = sets.find(name);
-    if (it == sets.end())
-        throw std::invalid_argument("Множество '" + name + "' не найдено.");
-    return it->second;
+    std::cout << name << " = " << s.toString() << "  (cardinality " << s.getCardinality() << ")\n";
 }
 
-void printSet(const std::string &name, const Set &s)
+static void createNewSet()
 {
-    std::cout << name << " = " << s.toString() << "  (мощность " << s.getCardinality() << ")\n";
-}
-
-void createNewSet()
-{
-    std::string name = ask("Имя нового множества: ");
+    std::string name = ask("New set name: ");
     checkName(name);
-    std::string text = ask("Множество (например {a, b, {c}}): ");
+    std::string text = ask("Set (e.g. {a, b, {c}}): ");
     if (text.empty())
-        throw std::invalid_argument("Строка множества пуста.");
-    Set s(text);
-    bool existed = sets.count(name) > 0;
-    sets.insert_or_assign(name, s);
-    std::cout << (existed ? "Перезаписано: " : "Создано: ") << name << " = " << s.toString() << "\n";
+        throw std::invalid_argument("Set string is empty.");
+    bool existed = container.createFromString(name, text);
+    std::cout << (existed ? "Overwritten: " : "Created: ") << name << " = "
+              << container.get(name).toString() << "\n";
 }
 
-void addElement()
+static void addElement()
 {
-    Set &s = getSet(ask("Имя множества: "));
-    Element e = parseElement(ask("Элемент (атом или {множество}): "));
-    s.add(e);
-    std::cout << "Элемент добавлен. Теперь: " << s.toString() << "\n";
+    std::string name = ask("Set name: ");
+    Element e = parseElement(ask("Element (atom or {set}): "));
+    container.addElement(name, e);
+    std::cout << "Element added. Current: " << container.get(name).toString() << "\n";
 }
 
-void removeElement()
+static void removeElement()
 {
-    Set &s = getSet(ask("Имя множества: "));
-    Element e = parseElement(ask("Элемент (атом или {множество}): "));
-    s.rmv(e);
-    std::cout << "Элемент удалён. Теперь: " << s.toString() << "\n";
+    std::string name = ask("Set name: ");
+    Element e = parseElement(ask("Element (atom or {set}): "));
+    container.removeElement(name, e);
+    std::cout << "Element removed. Current: " << container.get(name).toString() << "\n";
 }
 
-void printSetCardinality()
+static void printSetCardinality()
 {
-    std::string name = ask("Имя множества: ");
-    std::cout << "Мощность " << name << ": " << getSet(name).getCardinality() << "\n";
+    std::string name = ask("Set name: ");
+    std::cout << "Cardinality of " << name << ": " << container.cardinality(name) << "\n";
 }
 
-void checkElementMembership()
+static void checkElementMembership()
 {
-    std::string name = ask("Имя множества: ");
-    const Set &s = getSet(name);
-    Element e = parseElement(ask("Элемент (атом или {множество}): "));
-    std::cout << "Элемент " << (s[e] ? "принадлежит" : "не принадлежит") << " множеству " << name << ".\n";
+    std::string name = ask("Set name: ");
+    Element e = parseElement(ask("Element (atom or {set}): "));
+    std::cout << "Element " << (container.isMember(name, e) ? "belongs" : "does not belong")
+              << " to set " << name << ".\n";
 }
 
-void performUnion()
+static void performUnion()
 {
-    Set &a = getSet(ask("Первое множество: "));
-    const Set &b = getSet(ask("Второе множество: "));
-    std::string resultName = ask("Имя для результата (пусто — изменить первое множество на месте): ");
+    std::string firstName = ask("First set: ");
+    std::string secondName = ask("Second set: ");
+    std::string resultName = ask("Result name (leave empty to modify the first set in place): ");
     if (resultName.empty())
     {
-        a += b;
-        printSet("Результат", a);
+        container.uniteInPlace(firstName, secondName);
+        printSet("Result", container.get(firstName));
         return;
     }
     checkName(resultName);
-    Set r = a + b;
-    sets.insert_or_assign(resultName, r);
-    printSet(resultName, r);
+    Set result = container.unite(firstName, secondName);
+    container.store(resultName, result);
+    printSet(resultName, result);
 }
 
-void performIntersection()
+static void performIntersection()
 {
-    Set &a = getSet(ask("Первое множество: "));
-    const Set &b = getSet(ask("Второе множество: "));
-    std::string resultName = ask("Имя для результата (пусто — изменить первое множество на месте): ");
+    std::string firstName = ask("First set: ");
+    std::string secondName = ask("Second set: ");
+    std::string resultName = ask("Result name (leave empty to modify the first set in place): ");
     if (resultName.empty())
     {
-        a *= b;
-        printSet("Результат", a);
+        container.intersectInPlace(firstName, secondName);
+        printSet("Result", container.get(firstName));
         return;
     }
     checkName(resultName);
-    Set r = a * b;
-    sets.insert_or_assign(resultName, r);
-    printSet(resultName, r);
+    Set result = container.intersect(firstName, secondName);
+    container.store(resultName, result);
+    printSet(resultName, result);
 }
 
-void performDifference()
+static void performDifference()
 {
-    Set &a = getSet(ask("Первое множество: "));
-    const Set &b = getSet(ask("Второе множество: "));
-    std::string resultName = ask("Имя для результата (пусто — изменить первое множество на месте): ");
+    std::string firstName = ask("First set: ");
+    std::string secondName = ask("Second set: ");
+    std::string resultName = ask("Result name (leave empty to modify the first set in place): ");
     if (resultName.empty())
     {
-        a -= b;
-        printSet("Результат", a);
+        container.differenceInPlace(firstName, secondName);
+        printSet("Result", container.get(firstName));
         return;
     }
     checkName(resultName);
-    Set r = a - b;
-    sets.insert_or_assign(resultName, r);
-    printSet(resultName, r);
+    Set result = container.difference(firstName, secondName);
+    container.store(resultName, result);
+    printSet(resultName, result);
 }
 
-const size_t kMaxBooleanSize = 20; // 2^20 подмножеств — предел разумного для консоли
+static const size_t kMaxBooleanSize = 20; // 2^20 subsets — reasonable limit for console
 
-void printPowerSet()
+static void printPowerSet()
 {
-    Set &s = getSet(ask("Имя множества: "));
-    if (s.getCardinality() > kMaxBooleanSize)
-        throw std::invalid_argument("Множество слишком велико для булеана (максимум " +
-                                    std::to_string(kMaxBooleanSize) + " элементов).");
-    std::string resultName = ask("Имя для булеана: ");
+    std::string name = ask("Set name: ");
+    if (container.cardinality(name) > kMaxBooleanSize)
+        throw std::invalid_argument("Set is too large for power set (maximum " +
+                                    std::to_string(kMaxBooleanSize) + " elements).");
+    std::string resultName = ask("Power set name: ");
     checkName(resultName);
-    Set b = s.buildBoolean();
-    sets.insert_or_assign(resultName, b);
-    printSet(resultName, b);
+    Set powerSet = container.powerSet(name);
+    container.store(resultName, powerSet);
+    printSet(resultName, powerSet);
 }
 
-void printAllSets()
+static void printAllSets()
 {
-    if (sets.empty())
+    if (container.empty())
     {
-        std::cout << "Множеств пока нет.\n";
+        std::cout << "No sets yet.\n";
         return;
     }
-    for (const auto &kv : sets)
-        printSet(kv.first, kv.second);
-}
-
+    for (const auto &entry : container.all())
+        printSet(entry.first, entry.second);
 }
 
 int main()
@@ -187,19 +174,19 @@ int main()
     int choice;
     do
     {
-        std::cout << "\n{     Меню     }\n";
-        std::cout << "{ 1. Создать новое множество      }\n";
-        std::cout << "{ 2. Добавить элемент в множество     }\n";
-        std::cout << "{ 3. Удалить элемент из множества     }\n";
-        std::cout << "{ 4. Определить мощность множества    }\n";
-        std::cout << "{    5. Проверить принадлежность элемента множеству    }\n";
-        std::cout << "{    6. Объединенить два множества    }" << std::endl;
-        std::cout << "{    7. Пересечение двух множеств    }" << std::endl;
-        std::cout << "{   8. Разность двух множеств   }" << std::endl;
-        std::cout << "{   9. Построить булеан множества   }" << std::endl;
-        std::cout << "{   10. Показать все множества   }" << std::endl;
-        std::cout << "{   0. Выход    }" << std::endl;
-        std::cout << "+--> Введите номер операции: ";
+        std::cout << "\n{    Menu    }\n";
+        std::cout << "{ 1. Create a new set               }\n";
+        std::cout << "{ 2. Add an element to a set        }\n";
+        std::cout << "{ 3. Remove an element from a set   }\n";
+        std::cout << "{ 4. Get set cardinality            }\n";
+        std::cout << "{    5. Check element membership    }\n";
+        std::cout << "{    6. Unite two sets              }" << std::endl;
+        std::cout << "{    7. Intersect two sets          }" << std::endl;
+        std::cout << "{    8. Difference of two sets      }" << std::endl;
+        std::cout << "{    9. Build power set             }" << std::endl;
+        std::cout << "{    10. Show all sets              }" << std::endl;
+        std::cout << "{    0. Exit                        }" << std::endl;
+        std::cout << "+--> Enter operation number: ";
 
         std::cin >> choice;
 
@@ -207,7 +194,7 @@ int main()
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Введите число от 0 до 10." << std::endl;
+            std::cout << "Please enter a number from 0 to 10." << std::endl;
             continue;
         }
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -247,16 +234,16 @@ int main()
                 printAllSets();
                 break;
             case 0:
-                std::cout << "Выход из программы." << std::endl;
+                std::cout << "Exiting program." << std::endl;
                 break;
             default:
-                std::cout << "Введите корректный номер операции." << std::endl;
+                std::cout << "Please enter a valid operation number." << std::endl;
                 break;
             }
         }
         catch (const std::exception &e)
         {
-            std::cout << "Ошибка: " << e.what() << std::endl;
+            std::cout << "Error: " << e.what() << std::endl;
         }
     } while (choice != 0);
 
