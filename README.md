@@ -5,7 +5,7 @@
 | Lab | Language | Contents                                                           | Docs                                                                                                                                                             |
 |-----|----------|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1   | C++, Python   | [Cantor set](./lab1/Set), [Turing machine](./lab1/TuringMachine) | [Cantor set](https://damselettex.github.io/PPOIS/), [Turing machine](https://damselettex.github.io/PPOIS/pdoc/) |
-| 2   | Python   | [lab2](./lab2)                                                   | [Cars](https://)                                                                          |
+| 2   | Python   | [lab2](./lab2)                                                   | [Transport Company](https://)                                                                          |
 
 ## Requirements
 - C++ 17+
@@ -18,5 +18,5 @@ Generated with [Doxygen](https://www.doxygen.nl/) and [pdoc](https://pdoc.dev/) 
 
 ## Releases
 
-Prebuilt *.exe files for Windows 11 are published in [Releases](https://github.com/damseletteX/PPOIS/releases/tag/lab.1)
+[Prebuilt *.exe for Win11](https://github.com/damseletteX/PPOIS/releases/tag/Lab1)
 
