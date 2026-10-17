@@ -1,504 +1,586 @@
+#include "set.h"
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <stdexcept>
 #include <string>
-#include "set.h"
 
-namespace
-{
+namespace {
 
 Element A(const std::string &name) { return Element(name); }
 Element S(const Set &s) { return Element(s); }
 
-Set fromAtoms(std::initializer_list<std::string> names)
-{
-    Set s;
-    for (const std::string &n : names)
-        s.add(Element(n));
-    return s;
+Set fromAtoms(std::initializer_list<std::string> names) {
+  Set s;
+  for (const std::string &n : names)
+    s.add(Element(n));
+  return s;
 }
 
+} // namespace
+
+TEST(Element, EqualAtomsAreEqual) {
+  EXPECT_TRUE(A("a") == A("a"));
+  EXPECT_FALSE(A("a") == A("b"));
 }
 
-TEST(Element, EqualAtomsAreEqual)
-{
-    EXPECT_TRUE(A("a") == A("a"));
-    EXPECT_FALSE(A("a") == A("b"));
+TEST(Element, AtomNeverEqualsSet) {
+  Set inner = fromAtoms({"a"});
+  EXPECT_FALSE(A("a") == S(inner));
+  EXPECT_FALSE(S(inner) == A("a"));
 }
 
-TEST(Element, AtomNeverEqualsSet)
-{
-    Set inner = fromAtoms({"a"});
-    EXPECT_FALSE(A("a") == S(inner));
-    EXPECT_FALSE(S(inner) == A("a"));
+TEST(Element, NestedSetsIgnoreOrder) {
+  Set s1 = fromAtoms({"a", "b"});
+  EXPECT_TRUE(S(s1) == S(fromAtoms({"b", "a"})));
+  EXPECT_FALSE(S(s1) == S(fromAtoms({"a", "c"})));
+  EXPECT_FALSE(S(s1) == S(fromAtoms({"a"})));
 }
 
-TEST(Element, NestedSetsIgnoreOrder)
-{
-    Set s1 = fromAtoms({"a", "b"});
-    EXPECT_TRUE(S(s1) == S(fromAtoms({"b", "a"})));
-    EXPECT_FALSE(S(s1) == S(fromAtoms({"a", "c"})));
-    EXPECT_FALSE(S(s1) == S(fromAtoms({"a"})));
+TEST(Element, EmptySetEqualsEmptySet) {
+  Set inner = fromAtoms({"a"});
+  EXPECT_TRUE(S(Set()) == S(Set()));
+  EXPECT_FALSE(S(Set()) == S(inner));
 }
 
-TEST(Element, EmptySetEqualsEmptySet)
-{
-    Set inner = fromAtoms({"a"});
-    EXPECT_TRUE(S(Set()) == S(Set()));
-    EXPECT_FALSE(S(Set()) == S(inner));
+TEST(Element, DeepNestingComparesRecursively) {
+  Set deepA("{a, {b, {c, d}}}");
+  EXPECT_TRUE(S(deepA) == S(Set("{{{d, c}, b}, a}")));
+  EXPECT_FALSE(S(deepA) == S(Set("{a, {b, {c, e}}}")));
 }
 
-TEST(Element, DeepNestingComparesRecursively)
-{
-    Set deepA("{a, {b, {c, d}}}");
-    EXPECT_TRUE(S(deepA) == S(Set("{{{d, c}, b}, a}")));
-    EXPECT_FALSE(S(deepA) == S(Set("{a, {b, {c, e}}}")));
+TEST(Element, ToStringAtomAndSet) {
+  EXPECT_EQ(A("abc").toString(), "abc");
+  EXPECT_EQ(S(Set("{a, b}")).toString(), "{a, b}");
+  EXPECT_EQ(S(Set()).toString(), "{}");
 }
-
-TEST(Element, ToStringAtomAndSet)
-{
-    EXPECT_EQ(A("abc").toString(), "abc");
-    EXPECT_EQ(S(Set("{a, b}")).toString(), "{a, b}");
-    EXPECT_EQ(S(Set()).toString(), "{}");
+TEST(SetParse, AllWhitespaceTypes) {
+  Set s("{a,\tb,\nc,\r d}");
+  EXPECT_EQ(s.getCardinality(), 4u);
 }
-
 // ============================================== Set: basics ================
-TEST(Set, NewSetIsEmpty)
-{
-    Set s;
-    EXPECT_TRUE(s.isEmpty());
-    EXPECT_EQ(s.getCardinality(), 0u);
+TEST(Set, NewSetIsEmpty) {
+  Set s;
+  EXPECT_TRUE(s.isEmpty());
+  EXPECT_EQ(s.getCardinality(), 0u);
 }
 
-TEST(Set, CardinalityGrowsWithDistinctElements)
-{
-    Set s;
-    s.add(A("a"));
-    EXPECT_FALSE(s.isEmpty());
-    EXPECT_EQ(s.getCardinality(), 1u);
-    s.add(A("b"));
-    s.add(A("c"));
-    EXPECT_EQ(s.getCardinality(), 3u);
+TEST(Set, CardinalityGrowsWithDistinctElements) {
+  Set s;
+  s.add(A("a"));
+  EXPECT_FALSE(s.isEmpty());
+  EXPECT_EQ(s.getCardinality(), 1u);
+  s.add(A("b"));
+  s.add(A("c"));
+  EXPECT_EQ(s.getCardinality(), 3u);
 }
 
 // ================================================================== add ====
-TEST(SetAdd, DuplicateAtomThrows)
-{
-    Set s;
-    s.add(A("a"));
-    EXPECT_THROW(s.add(A("a")), std::logic_error);
-    EXPECT_EQ(s.getCardinality(), 1u);
+TEST(SetAdd, DuplicateAtomThrows) {
+  Set s;
+  s.add(A("a"));
+  EXPECT_THROW(s.add(A("a")), std::logic_error);
+  EXPECT_EQ(s.getCardinality(), 1u);
 }
 
-TEST(SetAdd, NestedSetIsOneElement)
-{
-    Set n;
-    n.add(S(fromAtoms({"x", "y"})));
-    EXPECT_EQ(n.getCardinality(), 1u);
-    EXPECT_THROW(n.add(S(fromAtoms({"y", "x"}))), std::logic_error);
-    n.add(A("x"));
-    EXPECT_EQ(n.getCardinality(), 2u);
+TEST(SetAdd, NestedSetIsOneElement) {
+  Set n;
+  n.add(S(fromAtoms({"x", "y"})));
+  EXPECT_EQ(n.getCardinality(), 1u);
+  EXPECT_THROW(n.add(S(fromAtoms({"y", "x"}))), std::logic_error);
+  n.add(A("x"));
+  EXPECT_EQ(n.getCardinality(), 2u);
 }
 
-TEST(SetAdd, EmptySetCanBeAnElement)
-{
-    Set e;
-    e.add(S(Set()));
-    EXPECT_EQ(e.getCardinality(), 1u);
-    EXPECT_FALSE(e.isEmpty());
+TEST(SetAdd, EmptySetCanBeAnElement) {
+  Set e;
+  e.add(S(Set()));
+  EXPECT_EQ(e.getCardinality(), 1u);
+  EXPECT_FALSE(e.isEmpty());
 }
 
 // ================================================================== rmv ====
-TEST(SetRmv, RemovesExistingElement)
-{
-    Set s = fromAtoms({"a", "b"});
-    s.rmv(A("a"));
-    EXPECT_EQ(s.getCardinality(), 1u);
-    EXPECT_FALSE(s[A("a")]);
-    EXPECT_TRUE(s[A("b")]);
+TEST(SetRmv, RemovesExistingElement) {
+  Set s = fromAtoms({"a", "b"});
+  s.rmv(A("a"));
+  EXPECT_EQ(s.getCardinality(), 1u);
+  EXPECT_FALSE(s[A("a")]);
+  EXPECT_TRUE(s[A("b")]);
 }
 
-TEST(SetRmv, MissingElementThrows)
-{
-    Set s = fromAtoms({"a", "b"});
-    s.rmv(A("a"));
-    EXPECT_THROW(s.rmv(A("zzz")), std::logic_error);
-    EXPECT_EQ(s.getCardinality(), 1u);
+TEST(SetRmv, MissingElementThrows) {
+  Set s = fromAtoms({"a", "b"});
+  s.rmv(A("a"));
+  EXPECT_THROW(s.rmv(A("zzz")), std::logic_error);
+  EXPECT_EQ(s.getCardinality(), 1u);
 }
 
-TEST(SetRmv, RemovingFromEmptySetThrows)
-{
-    Set empty;
-    EXPECT_THROW(empty.rmv(A("a")), std::logic_error);
+TEST(SetRmv, RemovingFromEmptySetThrows) {
+  Set empty;
+  EXPECT_THROW(empty.rmv(A("a")), std::logic_error);
 }
 
-TEST(SetRmv, NestedSetRemovedByContent)
-{
-    Set n;
-    n.add(A("x"));
-    n.add(S(fromAtoms({"p", "q"})));
-    n.rmv(S(fromAtoms({"q", "p"})));
-    EXPECT_EQ(n.getCardinality(), 1u);
-    EXPECT_TRUE(n[A("x")]);
+TEST(SetRmv, NestedSetRemovedByContent) {
+  Set n;
+  n.add(A("x"));
+  n.add(S(fromAtoms({"p", "q"})));
+  n.rmv(S(fromAtoms({"q", "p"})));
+  EXPECT_EQ(n.getCardinality(), 1u);
+  EXPECT_TRUE(n[A("x")]);
 }
 
-TEST(SetRmv, RemovingOnlyElementGivesEmptySet)
-{
-    Set one = fromAtoms({"a"});
-    one.rmv(A("a"));
-    EXPECT_TRUE(one.isEmpty());
+TEST(SetRmv, RemovingOnlyElementGivesEmptySet) {
+  Set one = fromAtoms({"a"});
+  one.rmv(A("a"));
+  EXPECT_TRUE(one.isEmpty());
 }
 
-TEST(SetClear, EmptiesTheSet)
-{
-    Set s = fromAtoms({"a", "b"});
-    s.clear();
-    EXPECT_TRUE(s.isEmpty());
-    EXPECT_EQ(s.getCardinality(), 0u);
-    s.clear(); // clearing an already empty set is safe
-    EXPECT_TRUE(s.isEmpty());
+TEST(SetClear, EmptiesTheSet) {
+  Set s = fromAtoms({"a", "b"});
+  s.clear();
+  EXPECT_TRUE(s.isEmpty());
+  EXPECT_EQ(s.getCardinality(), 0u);
+  s.clear(); // clearing an already empty set is safe
+  EXPECT_TRUE(s.isEmpty());
 }
 
 // ================================================================ [] ========
-TEST(SetMembership, AtomsAndNestedSets)
-{
-    Set s;
-    s.add(A("a"));
-    s.add(S(fromAtoms({"b", "c"})));
-    s.add(S(Set()));
+TEST(SetMembership, AtomsAndNestedSets) {
+  Set s;
+  s.add(A("a"));
+  s.add(S(fromAtoms({"b", "c"})));
+  s.add(S(Set()));
 
-    EXPECT_TRUE(s[A("a")]);
-    EXPECT_FALSE(s[A("z")]);
-    EXPECT_TRUE(s[S(fromAtoms({"c", "b"}))]);
-    EXPECT_FALSE(s[S(fromAtoms({"b"}))]);      // {b} lies deeper, not a member
-    EXPECT_FALSE(s[A("b")]);                    // elements of a nested set aren't ours
-    EXPECT_TRUE(s[S(Set())]);
-    EXPECT_FALSE(Set()[A("a")]);
+  EXPECT_TRUE(s[A("a")]);
+  EXPECT_FALSE(s[A("z")]);
+  EXPECT_TRUE(s[S(fromAtoms({"c", "b"}))]);
+  EXPECT_FALSE(s[S(fromAtoms({"b"}))]); // {b} lies deeper, not a member
+  EXPECT_FALSE(s[A("b")]);              // elements of a nested set aren't ours
+  EXPECT_TRUE(s[S(Set())]);
+  EXPECT_FALSE(Set()[A("a")]);
 }
 
 // ================================================================ == ========
-TEST(SetEquality, OrderDoesNotMatter)
-{
-    EXPECT_TRUE(fromAtoms({"x", "y"}) == fromAtoms({"x", "y"}));
-    EXPECT_TRUE(fromAtoms({"x", "y"}) == fromAtoms({"y", "x"}));
-    EXPECT_FALSE(fromAtoms({"x"}) == fromAtoms({"x", "y"}));
-    EXPECT_FALSE(fromAtoms({"x", "y"}) == fromAtoms({"x", "z"}));
-    EXPECT_TRUE(Set() == Set());
-    EXPECT_FALSE(Set() == fromAtoms({"a"}));
-    Set s = fromAtoms({"a", "b"});
-    EXPECT_TRUE(s == s);
+TEST(SetEquality, OrderDoesNotMatter) {
+  EXPECT_TRUE(fromAtoms({"x", "y"}) == fromAtoms({"x", "y"}));
+  EXPECT_TRUE(fromAtoms({"x", "y"}) == fromAtoms({"y", "x"}));
+  EXPECT_FALSE(fromAtoms({"x"}) == fromAtoms({"x", "y"}));
+  EXPECT_FALSE(fromAtoms({"x", "y"}) == fromAtoms({"x", "z"}));
+  EXPECT_TRUE(Set() == Set());
+  EXPECT_FALSE(Set() == fromAtoms({"a"}));
+  Set s = fromAtoms({"a", "b"});
+  EXPECT_TRUE(s == s);
 }
 
 // ================================================================ + += =====
-TEST(SetUnion, DoesNotDuplicateCommonElements)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = fromAtoms({"y", "z"});
-    Set a0 = a, b0 = b;
+TEST(SetUnion, DoesNotDuplicateCommonElements) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = fromAtoms({"y", "z"});
+  Set a0 = a, b0 = b;
 
-    Set u = a + b;
-    EXPECT_EQ(u.getCardinality(), 3u);
-    EXPECT_TRUE(u == fromAtoms({"x", "y", "z"}));
-    EXPECT_TRUE(a == a0);
-    EXPECT_TRUE(b == b0); // operands unchanged
+  Set u = a + b;
+  EXPECT_EQ(u.getCardinality(), 3u);
+  EXPECT_TRUE(u == fromAtoms({"x", "y", "z"}));
+  EXPECT_TRUE(a == a0);
+  EXPECT_TRUE(b == b0); // operands unchanged
 }
 
-TEST(SetUnion, IdentityAndIdempotence)
-{
-    Set b = fromAtoms({"y", "z"});
-    EXPECT_TRUE((Set() + b) == b);
-    EXPECT_TRUE((b + Set()) == b);
-    EXPECT_TRUE((Set() + Set()).isEmpty());
-    Set a = fromAtoms({"x", "y"});
-    EXPECT_TRUE((a + a) == a);
+TEST(SetUnion, IdentityAndIdempotence) {
+  Set b = fromAtoms({"y", "z"});
+  EXPECT_TRUE((Set() + b) == b);
+  EXPECT_TRUE((b + Set()) == b);
+  EXPECT_TRUE((Set() + Set()).isEmpty());
+  Set a = fromAtoms({"x", "y"});
+  EXPECT_TRUE((a + a) == a);
 }
 
-TEST(SetUnion, DisjointSetsAddCardinalities)
-{
-    EXPECT_EQ((fromAtoms({"p"}) + fromAtoms({"q"})).getCardinality(), 2u);
+TEST(SetUnion, DisjointSetsAddCardinalities) {
+  EXPECT_EQ((fromAtoms({"p"}) + fromAtoms({"q"})).getCardinality(), 2u);
 }
 
-TEST(SetUnion, CommonNestedSetIsNotDuplicated)
-{
-    Set n1, n2;
-    n1.add(A("x"));
-    n1.add(S(fromAtoms({"a"})));
-    n2.add(S(fromAtoms({"a"})));
-    n2.add(A("y"));
-    EXPECT_EQ((n1 + n2).getCardinality(), 3u);
+TEST(SetUnion, CommonNestedSetIsNotDuplicated) {
+  Set n1, n2;
+  n1.add(A("x"));
+  n1.add(S(fromAtoms({"a"})));
+  n2.add(S(fromAtoms({"a"})));
+  n2.add(A("y"));
+  EXPECT_EQ((n1 + n2).getCardinality(), 3u);
 }
 
-TEST(SetUnionAssign, MutatesLeftOperandAndReturnsReference)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = fromAtoms({"y", "z"});
-    Set &ref = (a += b);
-    EXPECT_EQ(&ref, &a);
-    EXPECT_TRUE(a == fromAtoms({"x", "y", "z"}));
-    EXPECT_TRUE(b == fromAtoms({"y", "z"})); // right operand unchanged
+TEST(SetUnionAssign, MutatesLeftOperandAndReturnsReference) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = fromAtoms({"y", "z"});
+  Set &ref = (a += b);
+  EXPECT_EQ(&ref, &a);
+  EXPECT_TRUE(a == fromAtoms({"x", "y", "z"}));
+  EXPECT_TRUE(b == fromAtoms({"y", "z"})); // right operand unchanged
 }
 
-TEST(SetUnionAssign, SelfUnionAndChaining)
-{
-    Set a = fromAtoms({"x", "y"});
-    a += a;
-    EXPECT_EQ(a.getCardinality(), 2u);
-    Set b = fromAtoms({"z"});
-    Set c = fromAtoms({"w"});
-    (a += b) += c;
-    EXPECT_EQ(a.getCardinality(), 4u);
-    EXPECT_TRUE(a[A("w")]);
-    Set e;
-    e += Set();
-    EXPECT_TRUE(e.isEmpty());
+TEST(SetUnionAssign, SelfUnionAndChaining) {
+  Set a = fromAtoms({"x", "y"});
+  a += a;
+  EXPECT_EQ(a.getCardinality(), 2u);
+  Set b = fromAtoms({"z"});
+  Set c = fromAtoms({"w"});
+  (a += b) += c;
+  EXPECT_EQ(a.getCardinality(), 4u);
+  EXPECT_TRUE(a[A("w")]);
+  Set e;
+  e += Set();
+  EXPECT_TRUE(e.isEmpty());
 }
 
 // ================================================================ * *= =====
-TEST(SetIntersection, KeepsOnlyCommonElements)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = fromAtoms({"y", "z"});
-    Set a0 = a, b0 = b;
-    Set r = a * b;
-    EXPECT_EQ(r.getCardinality(), 1u);
-    EXPECT_TRUE(r[A("y")]);
-    EXPECT_TRUE(a == a0);
-    EXPECT_TRUE(b == b0);
+TEST(SetIntersection, KeepsOnlyCommonElements) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = fromAtoms({"y", "z"});
+  Set a0 = a, b0 = b;
+  Set r = a * b;
+  EXPECT_EQ(r.getCardinality(), 1u);
+  EXPECT_TRUE(r[A("y")]);
+  EXPECT_TRUE(a == a0);
+  EXPECT_TRUE(b == b0);
 }
 
-TEST(SetIntersection, DisjointAndIdentityCases)
-{
-    EXPECT_TRUE((fromAtoms({"x"}) * fromAtoms({"y"})).isEmpty());
-    Set a = fromAtoms({"x", "y"});
-    EXPECT_TRUE((a * Set()).isEmpty());
-    EXPECT_TRUE((Set() * a).isEmpty());
-    EXPECT_TRUE((a * a) == a);
+TEST(SetIntersection, DisjointAndIdentityCases) {
+  EXPECT_TRUE((fromAtoms({"x"}) * fromAtoms({"y"})).isEmpty());
+  Set a = fromAtoms({"x", "y"});
+  EXPECT_TRUE((a * Set()).isEmpty());
+  EXPECT_TRUE((Set() * a).isEmpty());
+  EXPECT_TRUE((a * a) == a);
 }
 
-TEST(SetIntersection, NestedSetsIntersectByContent)
-{
-    Set n1, n2;
-    n1.add(A("x"));
-    n1.add(S(fromAtoms({"a", "b"})));
-    n2.add(S(fromAtoms({"b", "a"})));
-    n2.add(A("z"));
-    Set nr = n1 * n2;
-    EXPECT_EQ(nr.getCardinality(), 1u);
-    EXPECT_TRUE(nr[S(fromAtoms({"a", "b"}))]);
+TEST(SetIntersection, NestedSetsIntersectByContent) {
+  Set n1, n2;
+  n1.add(A("x"));
+  n1.add(S(fromAtoms({"a", "b"})));
+  n2.add(S(fromAtoms({"b", "a"})));
+  n2.add(A("z"));
+  Set nr = n1 * n2;
+  EXPECT_EQ(nr.getCardinality(), 1u);
+  EXPECT_TRUE(nr[S(fromAtoms({"a", "b"}))]);
 }
 
-TEST(SetIntersectionAssign, MutatesLeftOperandAndReturnsReference)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = fromAtoms({"y", "z"});
-    Set &ref = (a *= b);
-    EXPECT_EQ(&ref, &a);
-    EXPECT_TRUE(a == fromAtoms({"y"}));
-    EXPECT_TRUE(b == fromAtoms({"y", "z"}));
-    a *= a;
-    EXPECT_TRUE(a == fromAtoms({"y"}));
-    a *= fromAtoms({"q"});
-    EXPECT_TRUE(a.isEmpty());
+TEST(SetIntersectionAssign, MutatesLeftOperandAndReturnsReference) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = fromAtoms({"y", "z"});
+  Set &ref = (a *= b);
+  EXPECT_EQ(&ref, &a);
+  EXPECT_TRUE(a == fromAtoms({"y"}));
+  EXPECT_TRUE(b == fromAtoms({"y", "z"}));
+  a *= a;
+  EXPECT_TRUE(a == fromAtoms({"y"}));
+  a *= fromAtoms({"q"});
+  EXPECT_TRUE(a.isEmpty());
 }
 
 // ================================================================ - -= =====
-TEST(SetDifference, RemovesElementsOfOther)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = fromAtoms({"y", "z"});
-    Set a0 = a, b0 = b;
-    Set d = a - b;
-    EXPECT_EQ(d.getCardinality(), 1u);
-    EXPECT_TRUE(d[A("x")]);
-    EXPECT_FALSE(d[A("y")]);
-    EXPECT_TRUE(a == a0);
-    EXPECT_TRUE(b == b0);
+TEST(SetDifference, RemovesElementsOfOther) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = fromAtoms({"y", "z"});
+  Set a0 = a, b0 = b;
+  Set d = a - b;
+  EXPECT_EQ(d.getCardinality(), 1u);
+  EXPECT_TRUE(d[A("x")]);
+  EXPECT_FALSE(d[A("y")]);
+  EXPECT_TRUE(a == a0);
+  EXPECT_TRUE(b == b0);
 }
 
-TEST(SetDifference, DisjointAndIdentityCases)
-{
-    Set a = fromAtoms({"x", "y"});
-    EXPECT_TRUE((a - fromAtoms({"q"})) == a);
-    EXPECT_TRUE((a - a).isEmpty());
-    EXPECT_TRUE((a - Set()) == a);
-    EXPECT_TRUE((Set() - a).isEmpty());
+TEST(SetDifference, DisjointAndIdentityCases) {
+  Set a = fromAtoms({"x", "y"});
+  EXPECT_TRUE((a - fromAtoms({"q"})) == a);
+  EXPECT_TRUE((a - a).isEmpty());
+  EXPECT_TRUE((a - Set()) == a);
+  EXPECT_TRUE((Set() - a).isEmpty());
 }
 
-TEST(SetDifference, NestedSetSubtractedByContent)
-{
-    Set n;
-    n.add(A("x"));
-    n.add(S(fromAtoms({"a"})));
-    Set sub;
-    sub.add(S(fromAtoms({"a"})));
-    Set nd = n - sub;
-    EXPECT_EQ(nd.getCardinality(), 1u);
-    EXPECT_TRUE(nd[A("x")]);
+TEST(SetDifference, NestedSetSubtractedByContent) {
+  Set n;
+  n.add(A("x"));
+  n.add(S(fromAtoms({"a"})));
+  Set sub;
+  sub.add(S(fromAtoms({"a"})));
+  Set nd = n - sub;
+  EXPECT_EQ(nd.getCardinality(), 1u);
+  EXPECT_TRUE(nd[A("x")]);
 }
 
-TEST(SetDifferenceAssign, MutatesLeftOperandAndReturnsReference)
-{
-    Set a = fromAtoms({"x", "y", "z"});
-    Set &ref = (a -= fromAtoms({"y"}));
-    EXPECT_EQ(&ref, &a);
-    EXPECT_TRUE(a == fromAtoms({"x", "z"}));
-    a -= a;
-    EXPECT_TRUE(a.isEmpty());
-    Set e;
-    e -= fromAtoms({"a"});
-    EXPECT_TRUE(e.isEmpty());
+TEST(SetDifferenceAssign, MutatesLeftOperandAndReturnsReference) {
+  Set a = fromAtoms({"x", "y", "z"});
+  Set &ref = (a -= fromAtoms({"y"}));
+  EXPECT_EQ(&ref, &a);
+  EXPECT_TRUE(a == fromAtoms({"x", "z"}));
+  a -= a;
+  EXPECT_TRUE(a.isEmpty());
+  Set e;
+  e -= fromAtoms({"a"});
+  EXPECT_TRUE(e.isEmpty());
 }
 
 // ============================================================== copying ====
-TEST(SetCopy, CopyIsIndependentFromOriginal)
-{
-    Set a = fromAtoms({"x", "y"});
-    Set b = a;
-    EXPECT_TRUE(b == a);
-    EXPECT_EQ(b.getCardinality(), 2u);
+TEST(SetCopy, CopyIsIndependentFromOriginal) {
+  Set a = fromAtoms({"x", "y"});
+  Set b = a;
+  EXPECT_TRUE(b == a);
+  EXPECT_EQ(b.getCardinality(), 2u);
 
-    b.add(A("z"));
-    EXPECT_EQ(a.getCardinality(), 2u);
-    EXPECT_FALSE(a[A("z")]);
+  b.add(A("z"));
+  EXPECT_EQ(a.getCardinality(), 2u);
+  EXPECT_FALSE(a[A("z")]);
 
-    a.rmv(A("x"));
-    EXPECT_TRUE(b[A("x")]);
+  a.rmv(A("x"));
+  EXPECT_TRUE(b[A("x")]);
 }
 
-TEST(SetCopy, AssignmentCopiesContent)
-{
-    Set b = fromAtoms({"x", "y", "z"});
-    Set c;
-    c = b;
-    EXPECT_TRUE(c == b);
+TEST(SetCopy, AssignmentCopiesContent) {
+  Set b = fromAtoms({"x", "y", "z"});
+  Set c;
+  c = b;
+  EXPECT_TRUE(c == b);
 }
 
-TEST(SetCopy, NestedSetIsCopiedCorrectly)
-{
-    Set n;
-    n.add(S(fromAtoms({"p"})));
-    Set m = n;
-    EXPECT_TRUE(m == n);
-    EXPECT_EQ(m.getCardinality(), 1u);
+TEST(SetCopy, NestedSetIsCopiedCorrectly) {
+  Set n;
+  n.add(S(fromAtoms({"p"})));
+  Set m = n;
+  EXPECT_TRUE(m == n);
+  EXPECT_EQ(m.getCardinality(), 1u);
 }
 
 // ================================================================ parse ====
-TEST(SetParse, SimpleAndWhitespace)
-{
-    EXPECT_TRUE(Set("{a,b,c}") == fromAtoms({"a", "b", "c"}));
-    EXPECT_TRUE(Set("{ a ,  b , c }") == fromAtoms({"a", "b", "c"}));
-    EXPECT_EQ(Set("{a,\tb,\nc}").getCardinality(), 3u);
-    EXPECT_TRUE(Set("{apple, banana}")[A("apple")]);
+TEST(SetParse, SimpleAndWhitespace) {
+  EXPECT_TRUE(Set("{a,b,c}") == fromAtoms({"a", "b", "c"}));
+  EXPECT_TRUE(Set("{ a ,  b , c }") == fromAtoms({"a", "b", "c"}));
+  EXPECT_EQ(Set("{a,\tb,\nc}").getCardinality(), 3u);
+  EXPECT_TRUE(Set("{apple, banana}")[A("apple")]);
 }
 
-TEST(SetParse, EmptyVariants)
-{
-    EXPECT_TRUE(Set("{}").isEmpty());
-    EXPECT_TRUE(Set("").isEmpty());
-    EXPECT_TRUE(Set("   ").isEmpty());
+TEST(SetParse, EmptyVariants) {
+  EXPECT_TRUE(Set("{}").isEmpty());
+  EXPECT_TRUE(Set("").isEmpty());
+  EXPECT_TRUE(Set("   ").isEmpty());
 }
 
-TEST(SetParse, TaskExampleHasSixTopLevelElements)
-{
-    Set p("{a, b, c, {a, b}, {}, {a, {c}}}");
-    EXPECT_EQ(p.getCardinality(), 6u);
-    EXPECT_TRUE(p[A("a")]);
-    EXPECT_TRUE(p[A("b")]);
-    EXPECT_TRUE(p[A("c")]);
-    EXPECT_TRUE(p[S(Set("{a,b}"))]);
-    EXPECT_TRUE(p[S(Set("{}"))]);
-    EXPECT_TRUE(p[S(Set("{a,{c}}"))]);
-    EXPECT_FALSE(p[S(Set("{c}"))]); // lies deeper, not a top-level element
+TEST(SetParse, TaskExampleHasSixTopLevelElements) {
+  Set p("{a, b, c, {a, b}, {}, {a, {c}}}");
+  EXPECT_EQ(p.getCardinality(), 6u);
+  EXPECT_TRUE(p[A("a")]);
+  EXPECT_TRUE(p[A("b")]);
+  EXPECT_TRUE(p[A("c")]);
+  EXPECT_TRUE(p[S(Set("{a,b}"))]);
+  EXPECT_TRUE(p[S(Set("{}"))]);
+  EXPECT_TRUE(p[S(Set("{a,{c}}"))]);
+  EXPECT_FALSE(p[S(Set("{c}"))]); // lies deeper, not a top-level element
 }
 
-TEST(SetParse, NestingAndDeduplication)
-{
-    EXPECT_EQ(Set("{{}}").getCardinality(), 1u);
-    EXPECT_TRUE(Set("{{}}")[S(Set())]);
-    EXPECT_EQ(Set("{{{a}}}").getCardinality(), 1u);
-    EXPECT_EQ(Set("{a,a}").getCardinality(), 1u);
-    EXPECT_EQ(Set("{{},{}}").getCardinality(), 1u);
-    EXPECT_EQ(Set("{{a,b},{b,a}}").getCardinality(), 1u);
+TEST(SetParse, NestingAndDeduplication) {
+  EXPECT_EQ(Set("{{}}").getCardinality(), 1u);
+  EXPECT_TRUE(Set("{{}}")[S(Set())]);
+  EXPECT_EQ(Set("{{{a}}}").getCardinality(), 1u);
+  EXPECT_EQ(Set("{a,a}").getCardinality(), 1u);
+  EXPECT_EQ(Set("{{},{}}").getCardinality(), 1u);
+  EXPECT_EQ(Set("{{a,b},{b,a}}").getCardinality(), 1u);
 }
 
-TEST(SetParse, InvalidFormatThrows)
-{
-    const char *bad[] = {"{a", "a}", "{a}}", "a,b", "{a}b", "}{",
-                          "{a,{b}", "a", ",a", "{a},b", ",", "{a},", "}"};
-    for (const char *text : bad)
-        EXPECT_THROW(Set s(text), std::invalid_argument) << "input: " << text;
+TEST(SetParse, InvalidFormatThrows) {
+  const char *bad[] = {"{a", "a}", "{a}}",  "a,b", "{a}b", "}{", "{a,{b}",
+                       "a",  ",a", "{a},b", ",",   "{a},", "}"};
+  for (const char *text : bad)
+    EXPECT_THROW(Set s(text), std::invalid_argument) << "input: " << text;
 }
 
 // ============================================================== toString ===
-TEST(SetToString, RoundTripsThroughParse)
-{
-    EXPECT_EQ(Set().toString(), "{}");
-    EXPECT_EQ(fromAtoms({"a", "b"}).toString(), "{a, b}");
-    EXPECT_EQ(Set("{a,{b,c}}").toString(), "{a, {b, c}}");
-    EXPECT_EQ(Set("{{}}").toString(), "{{}}");
-    Set p("{a, b, c, {a, b}, {}, {a, {c}}}");
-    EXPECT_TRUE(Set(p.toString()) == p);
+TEST(SetToString, RoundTripsThroughParse) {
+  EXPECT_EQ(Set().toString(), "{}");
+  EXPECT_EQ(fromAtoms({"a", "b"}).toString(), "{a, b}");
+  EXPECT_EQ(Set("{a,{b,c}}").toString(), "{a, {b, c}}");
+  EXPECT_EQ(Set("{{}}").toString(), "{{}}");
+  Set p("{a, b, c, {a, b}, {}, {a, {c}}}");
+  EXPECT_TRUE(Set(p.toString()) == p);
 }
 
 // ================================================================ boolean ==
-TEST(SetBoolean, EmptySetGivesOneElement)
-{
-    Set b0 = Set().buildBoolean();
-    EXPECT_EQ(b0.getCardinality(), 1u);
-    EXPECT_TRUE(b0[S(Set())]);
+TEST(SetBoolean, EmptySetGivesOneElement) {
+  Set b0 = Set().buildBoolean();
+  EXPECT_EQ(b0.getCardinality(), 1u);
+  EXPECT_TRUE(b0[S(Set())]);
 }
 
-TEST(SetBoolean, SmallSetsMatchExpectedSubsets)
-{
-    EXPECT_TRUE(fromAtoms({"a"}).buildBoolean() == Set("{{}, {a}}"));
+TEST(SetBoolean, SmallSetsMatchExpectedSubsets) {
+  EXPECT_TRUE(fromAtoms({"a"}).buildBoolean() == Set("{{}, {a}}"));
 
-    Set two = fromAtoms({"a", "b"});
-    Set b2 = two.buildBoolean();
-    EXPECT_EQ(b2.getCardinality(), 4u);
-    EXPECT_TRUE(b2 == Set("{{}, {a}, {b}, {a,b}}"));
-    EXPECT_FALSE(b2[A("a")]);       // atoms themselves are not in the result
-    EXPECT_TRUE(b2[S(two)]);
-    EXPECT_TRUE(b2[S(Set())]);
-    EXPECT_TRUE(two == fromAtoms({"a", "b"})); // original unchanged
+  Set two = fromAtoms({"a", "b"});
+  Set b2 = two.buildBoolean();
+  EXPECT_EQ(b2.getCardinality(), 4u);
+  EXPECT_TRUE(b2 == Set("{{}, {a}, {b}, {a,b}}"));
+  EXPECT_FALSE(b2[A("a")]); // atoms themselves are not in the result
+  EXPECT_TRUE(b2[S(two)]);
+  EXPECT_TRUE(b2[S(Set())]);
+  EXPECT_TRUE(two == fromAtoms({"a", "b"})); // original unchanged
 
-    EXPECT_TRUE(fromAtoms({"a", "b", "c"}).buildBoolean() ==
-                Set("{{}, {a}, {b}, {c}, {a,b}, {a,c}, {b,c}, {a,b,c}}"));
-    EXPECT_EQ(fromAtoms({"a", "b", "c", "d"}).buildBoolean().getCardinality(), 16u);
+  EXPECT_TRUE(fromAtoms({"a", "b", "c"}).buildBoolean() ==
+              Set("{{}, {a}, {b}, {c}, {a,b}, {a,c}, {b,c}, {a,b,c}}"));
+  EXPECT_EQ(fromAtoms({"a", "b", "c", "d"}).buildBoolean().getCardinality(),
+            16u);
 }
 
-TEST(SetBoolean, ScalesAsPowerOfTwo)
-{
-    Set ten;
-    for (int i = 0; i < 10; i++)
-        ten.add(A("e" + std::to_string(i)));
-    EXPECT_EQ(ten.buildBoolean().getCardinality(), 1024u);
+TEST(SetBoolean, ScalesAsPowerOfTwo) {
+  Set ten;
+  for (int i = 0; i < 10; i++)
+    ten.add(A("e" + std::to_string(i)));
+  EXPECT_EQ(ten.buildBoolean().getCardinality(), 1024u);
 }
 
-TEST(SetBoolean, WorksWithNestedElements)
-{
-    Set nested;
-    nested.add(A("a"));
-    nested.add(S(fromAtoms({"b"})));
-    Set bn = nested.buildBoolean();
-    EXPECT_EQ(bn.getCardinality(), 4u);
-    EXPECT_TRUE(bn[S(nested)]);
-    Set onlyNested;
-    onlyNested.add(S(fromAtoms({"b"})));
-    EXPECT_TRUE(bn[S(onlyNested)]);
+TEST(SetBoolean, WorksWithNestedElements) {
+  Set nested;
+  nested.add(A("a"));
+  nested.add(S(fromAtoms({"b"})));
+  Set bn = nested.buildBoolean();
+  EXPECT_EQ(bn.getCardinality(), 4u);
+  EXPECT_TRUE(bn[S(nested)]);
+  Set onlyNested;
+  onlyNested.add(S(fromAtoms({"b"})));
+  EXPECT_TRUE(bn[S(onlyNested)]);
 }
 
-TEST(SetBoolean, BooleanOfBoolean)
-{
-    EXPECT_EQ(fromAtoms({"a"}).buildBoolean().buildBoolean().getCardinality(), 4u);
+TEST(SetBoolean, BooleanOfBoolean) {
+  EXPECT_EQ(fromAtoms({"a"}).buildBoolean().buildBoolean().getCardinality(),
+            4u);
 }
 
-TEST(SetBoolean, TooLargeSetThrowsLengthError)
-{
-    for (int n : {63, 64})
-    {
-        Set big;
-        for (int i = 0; i < n; i++)
-            big.add(A("e" + std::to_string(i)));
-        EXPECT_THROW(big.buildBoolean(), std::length_error) << "n=" << n;
-    }
+TEST(SetBoolean, TooLargeSetThrowsLengthError) {
+  for (int n : {63, 64}) {
+    Set big;
+    for (int i = 0; i < n; i++)
+      big.add(A("e" + std::to_string(i)));
+    EXPECT_THROW(big.buildBoolean(), std::length_error) << "n=" << n;
+  }
+}
+// ============================================================================
+// SetContainer: Extended & Edge-Case Tests
+// ============================================================================
+
+TEST(SetContainerExtended, StoreAndOverwriteBehavior) {
+  SetContainer container;
+
+  // Storing a new set should return false (was not overwritten)
+  bool overwritten1 = container.store("A", fromAtoms({"x", "y"}));
+  EXPECT_FALSE(overwritten1);
+  EXPECT_TRUE(container.exists("A"));
+  EXPECT_EQ(container.cardinality("A"), 2u);
+
+  // Storing over an existing name should return true (was overwritten)
+  bool overwritten2 = container.store("A", fromAtoms({"z"}));
+  EXPECT_TRUE(overwritten2);
+  EXPECT_EQ(container.cardinality("A"), 1u);
+  EXPECT_TRUE(container.isMember("A", Element("z")));
+  EXPECT_FALSE(container.isMember("A", Element("x")));
+}
+
+TEST(SetContainerExtended, ConstCorrectnessAccessors) {
+  SetContainer container;
+  container.createFromString("A", "{a, b, c}");
+
+  // Use a const reference to test const-qualified methods of SetContainer
+  const SetContainer &constContainer = container;
+
+  EXPECT_TRUE(constContainer.exists("A"));
+  EXPECT_FALSE(constContainer.empty());
+  EXPECT_EQ(constContainer.cardinality("A"), 3u);
+  EXPECT_FALSE(constContainer.isEmpty("A"));
+  EXPECT_TRUE(constContainer.isMember("A", Element("b")));
+  EXPECT_EQ(constContainer.all().size(), 1u);
+
+  // Const version of get()
+  const Set &sRef = constContainer.get("A");
+  EXPECT_EQ(sRef.getCardinality(), 3u);
+
+  // Const-container operations returning new sets
+  container.createFromString("B", "{b, c, d}");
+  EXPECT_TRUE(constContainer.areEqual(
+      "A", constContainer.get("A").toString() == "{a, b, c}" ? "A" : "A"));
+
+  Set un = constContainer.unite("A", "B");
+  EXPECT_EQ(un.getCardinality(), 4u);
+
+  Set inter = constContainer.intersect("A", "B");
+  EXPECT_EQ(inter.getCardinality(), 2u);
+
+  Set diff = constContainer.difference("A", "B");
+  EXPECT_EQ(diff.getCardinality(), 1u);
+  EXPECT_TRUE(diff[Element("a")]);
+
+  Set p = constContainer.powerSet("A");
+  EXPECT_EQ(p.getCardinality(), 8u);
+}
+
+TEST(SetContainerExtended, ParsingErrorsPropagate) {
+  SetContainer container;
+  // Malformed string syntax should throw std::invalid_argument via
+  // createFromString
+  EXPECT_THROW(container.createFromString("Bad", "{a, {b"),
+               std::invalid_argument);
+  EXPECT_FALSE(container.exists("Bad"));
+}
+
+TEST(SetContainerExtended, NonExistentSetThrowsOnAllOperations) {
+  SetContainer container;
+  container.createFromString("Exists", "{a}");
+
+  // Test non-existent checks for every method that requires a valid set name
+  EXPECT_THROW(container.get("Missing"), std::invalid_argument);
+
+  // Const get check
+  const SetContainer &constContainer = container;
+  EXPECT_THROW(constContainer.get("Missing"), std::invalid_argument);
+
+  EXPECT_THROW(container.addElement("Missing", Element("a")),
+               std::invalid_argument);
+  EXPECT_THROW(container.removeElement("Missing", Element("a")),
+               std::invalid_argument);
+  EXPECT_THROW(container.cardinality("Missing"), std::invalid_argument);
+  EXPECT_THROW(container.isEmpty("Missing"), std::invalid_argument);
+  EXPECT_THROW(container.isMember("Missing", Element("a")),
+               std::invalid_argument);
+
+  // Operations involving pairs where one or both are missing
+  EXPECT_THROW(container.areEqual("Exists", "Missing"), std::invalid_argument);
+  EXPECT_THROW(container.areEqual("Missing", "Exists"), std::invalid_argument);
+
+  EXPECT_THROW(container.unite("Exists", "Missing"), std::invalid_argument);
+  EXPECT_THROW(container.uniteInPlace("Missing", "Exists"),
+               std::invalid_argument);
+
+  EXPECT_THROW(container.intersect("Missing", "Exists"), std::invalid_argument);
+  EXPECT_THROW(container.intersectInPlace("Exists", "Missing"),
+               std::invalid_argument);
+
+  EXPECT_THROW(container.difference("Missing", "Missing"),
+               std::invalid_argument);
+  EXPECT_THROW(container.differenceInPlace("Exists", "Missing"),
+               std::invalid_argument);
+
+  EXPECT_THROW(container.powerSet("Missing"), std::invalid_argument);
+}
+
+TEST(SetContainerExtended, InPlaceOperationsMutateCorrectly) {
+  SetContainer container;
+  container.createFromString("A", "{1, 2}");
+  container.createFromString("B", "{2, 3}");
+
+  container.uniteInPlace("A", "B");
+  EXPECT_EQ(container.cardinality("A"), 3u);
+
+  container.createFromString("C", "{1, 2, 3}");
+  container.createFromString("D", "{2, 3, 4}");
+  container.intersectInPlace("C", "D");
+  EXPECT_EQ(container.cardinality("C"), 2u);
+  EXPECT_TRUE(container.isMember("C", Element("2")));
+  EXPECT_TRUE(container.isMember("C", Element("3")));
+
+  container.createFromString("E", "{x, y, z}");
+  container.createFromString("F", "{y}");
+  container.differenceInPlace("E", "F");
+  EXPECT_EQ(container.cardinality("E"), 2u);
+  EXPECT_FALSE(container.isMember("E", Element("y")));
 }
