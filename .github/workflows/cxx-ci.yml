@@ -2,27 +2,51 @@ name: CI
 
 on:
   push:
-    branches: ["main", "1stLab"]
+    branches: ["main"]
   pull_request:
-    branches: ["main", "1stLab"]
+    branches: ["main"]
 
   workflow_dispatch:
 
 jobs:
   build-and-test:
-    name: Build & test
+    name: Build, Test, Coverage & Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install toolchain
-        run: sudo apt-get update -qq && sudo apt-get install -y cmake ninja-build libgtest-dev
-      - name: Show repository files
-        run: find . -name CMakeLists.txt -print
-      - name: Configure
-        run: cmake -S ./lab1/Set -B build -G Ninja
+      - name: Install toolchain & utilities
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake ninja-build libgtest-dev lcov clang-format
+
+      - name: Run Linter (clang-format)
+        run: |
+          echo "Checking code formatting..."
+          find src include unit-test -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+
+      - name: Configure CMake
+        run: cmake -S ./lab1/Set -B build -G Ninja -DENABLE_COVERAGE=ON
+
       - name: Build
         run: cmake --build build
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
+
+      - name: Generate Code Coverage Summary
+        run: |
+          # Capture coverage data from the build directory
+          lcov --capture --directory build --output-file coverage_raw.info --ignore-errors inconsistent,gcov
+          
+          # Filter out system paths, test files, and external FetchContent (googletest) dependencies
+          lcov --remove coverage_raw.info '/usr/*' '*/_deps/*' '*/unit-test/*' --output-file coverage.info --ignore-errors unused
+          
+          # Display the final coverage percentage table in the GitHub Actions console logs
+          lcov --list coverage.info
+
+      - name: Upload Coverage Artifact (Optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.info
