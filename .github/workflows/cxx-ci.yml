@@ -23,8 +23,8 @@ jobs:
       - name: Run Linter (clang-format)
         run: |
           echo "Checking code formatting..."
-          find src include unit-test -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
-
+          find ./lab1/Set/src ./lab1/Set/include ./lab1/Set/unit-test -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+          
       - name: Configure CMake
         run: cmake -S ./lab1/Set -B build -G Ninja -DENABLE_COVERAGE=ON
 
@@ -40,11 +40,11 @@ jobs:
           lcov --capture --directory build --output-file coverage_raw.info --ignore-errors inconsistent,gcov,mismatch,mismatch
           
           # Filter out system paths, test files, main.cpp, and external dependencies
-          lcov --remove coverage_raw.info '/usr/*' '*/_deps/*' '*/unit-test/*' '*/src/main.cpp' --output-file coverage.info --ignore-errors unused
+          lcov --remove coverage_raw.info '/usr/*'  '/include/set.h' '*/_deps/*' '*/unit-test/*' '*/src/main.cpp' --output-file coverage.info --ignore-errors unused
           
           # Display the final coverage percentage table in the GitHub Actions console logs
           lcov --list coverage.info
-            
+
       - name: Upload Coverage Artifact (Optional)
         uses: actions/upload-artifact@v4
         with:
