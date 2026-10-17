@@ -9,7 +9,7 @@ add_library(cantor_set STATIC
 )
 target_include_directories(cantor_set PUBLIC include)
 
-option(ENABLE_COVERAGE "Build with --coverage instrumentation for gcov" OFF)
+option(ENABLE_COVERAGE "Build with --coverage instrumentation for gcov" ON)
 if(ENABLE_COVERAGE)
     target_compile_options(cantor_set PUBLIC --coverage -O0)
     target_link_options(cantor_set PUBLIC --coverage)
