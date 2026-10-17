@@ -36,15 +36,15 @@ jobs:
 
       - name: Generate Code Coverage Summary
         run: |
-          # Capture coverage data from the build directory
-          lcov --capture --directory build --output-file coverage_raw.info --ignore-errors inconsistent,gcov
+          # Capture coverage data and ignore function line mismatches from GTest macros
+          lcov --capture --directory build --output-file coverage_raw.info --ignore-errors inconsistent,gcov,mismatch,mismatch
           
           # Filter out system paths, test files, and external FetchContent (googletest) dependencies
           lcov --remove coverage_raw.info '/usr/*' '*/_deps/*' '*/unit-test/*' --output-file coverage.info --ignore-errors unused
           
           # Display the final coverage percentage table in the GitHub Actions console logs
           lcov --list coverage.info
-
+          
       - name: Upload Coverage Artifact (Optional)
         uses: actions/upload-artifact@v4
         with:
